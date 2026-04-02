@@ -1,0 +1,3755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StockPro – Product Management</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue-primary: #1D4ED8;
+    --blue-light: #3B82F6;
+    --blue-pale: #EFF6FF;
+    --blue-dark: #1E3A8A;
+    --accent: #0EA5E9;
+    --success: #10B981;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --card-bg: #FFFFFF;
+    --bg: #F8FAFC;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+  /* ── AUTH ── */
+  #auth-screen {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 50%, #1E3A8A 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .auth-card {
+    background: white;
+    border-radius: 28px;
+    padding: 40px 32px;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 32px 64px rgba(30,58,138,0.25);
+  }
+  .auth-logo {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg,#1D4ED8,#0EA5E9);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(29,78,216,0.4);
+  }
+  .auth-tab { cursor: pointer; padding: 10px 0; font-weight: 600; transition: all .2s; border-bottom: 2px solid transparent; }
+  .auth-tab.active { color: var(--blue-primary); border-color: var(--blue-primary); }
+  .auth-input {
+    width: 100%; padding: 13px 16px; border: 2px solid var(--border);
+    border-radius: 12px; font-family: inherit; font-size: 14px;
+    transition: border .2s; outline: none; background: #F8FAFC;
+  }
+  .auth-input:focus { border-color: var(--blue-light); background: white; }
+  .btn-primary {
+    background: linear-gradient(135deg,#1D4ED8,#3B82F6);
+    color: white; border: none; border-radius: 14px;
+    padding: 14px 24px; font-family: inherit; font-weight: 700;
+    font-size: 15px; cursor: pointer; width: 100%;
+    box-shadow: 0 8px 24px rgba(29,78,216,0.35);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(29,78,216,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ── APP SHELL ── */
+  #app-screen { display: none; min-height: 100vh; flex-direction: column; }
+  .top-bar {
+    background: white;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 40;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .section-content {
+    flex: 1; padding: 20px 16px 90px;
+    overflow-y: auto; max-width: 640px; margin: 0 auto; width: 100%;
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 50;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 8px 2px 6px;
+    cursor: pointer; color: var(--text-muted);
+    transition: color .2s; border: none; background: none;
+    font-size: 9px; font-family: inherit; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .2px;
+    position: relative;
+  }
+  .nav-item.active { color: var(--blue-primary); }
+  .nav-item.active::after {
+    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 32px; height: 3px; background: var(--blue-primary);
+    border-radius: 0 0 3px 3px;
+  }
+  .nav-item i { font-size: 18px; }
+  .nav-item.sell-btn {
+    color: white !important;
+  }
+  .nav-item.sell-btn .sell-inner {
+    background: linear-gradient(135deg,#1D4ED8,#3B82F6);
+    border-radius: 16px;
+    padding: 10px 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    box-shadow: 0 6px 20px rgba(29,78,216,0.45);
+    margin-top: -20px;
+  }
+  .nav-item.sell-btn::after { display: none !important; }
+
+  /* ── SECTION HEADER ── */
+  .section-title { font-size: 22px; font-weight: 800; color: var(--text-main); font-family: 'Space Grotesk',sans-serif; }
+  .section-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: white; border-radius: 20px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    border-radius: 20px; padding: 20px;
+    margin-bottom: 0; flex: 1;
+  }
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 12px;
+  }
+  .stat-value { font-size: 22px; font-weight: 800; font-family:'Space Grotesk',sans-serif; }
+  .stat-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── FORM INPUTS ── */
+  .form-label { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%; padding: 12px 14px; border: 2px solid var(--border);
+    border-radius: 12px; font-family: inherit; font-size: 14px;
+    transition: border .2s; outline: none; background: #F8FAFC;
+  }
+  .form-input:focus { border-color: var(--blue-light); background: white; }
+  .form-group { margin-bottom: 16px; }
+
+  /* ── PRODUCT CARD ── */
+  .product-item {
+    display: flex; align-items: center; gap: 14px;
+    background: white; border-radius: 16px; padding: 14px;
+    border: 1px solid var(--border); margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow .2s;
+  }
+  .product-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .product-img {
+    width: 56px; height: 56px; border-radius: 12px;
+    object-fit: cover; background: var(--blue-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0; overflow: hidden;
+  }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 30px; font-size: 11px; font-weight: 700;
+  }
+  .badge-success { background: #D1FAE5; color: #065F46; }
+  .badge-danger { background: #FEE2E2; color: #991B1B; }
+  .badge-warning { background: #FEF3C7; color: #92400E; }
+  .badge-blue { background: var(--blue-pale); color: var(--blue-dark); }
+
+  /* ── ICON BUTTON ── */
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 10px; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all .15s;
+  }
+  .icon-btn-blue { background: var(--blue-pale); color: var(--blue-primary); }
+  .icon-btn-blue:hover { background: var(--blue-primary); color: white; }
+  .icon-btn-red { background: #FEE2E2; color: var(--danger); }
+  .icon-btn-red:hover { background: var(--danger); color: white; }
+  .icon-btn-green { background: #D1FAE5; color: var(--success); }
+  .icon-btn-green:hover { background: var(--success); color: white; }
+
+  /* ── POS CART ── */
+  .pos-product {
+    background: white; border-radius: 14px; padding: 14px;
+    border: 2px solid transparent; cursor: pointer;
+    transition: border .15s, box-shadow .15s;
+    text-align: center;
+  }
+  .pos-product.selected { border-color: var(--blue-primary); box-shadow: 0 4px 16px rgba(29,78,216,0.2); }
+  .pos-product:hover { border-color: var(--blue-light); }
+  .cart-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px dashed var(--border);
+  }
+
+  /* ── HISTORY ── */
+  .history-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px; background: white; border-radius: 14px;
+    border: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .history-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px); z-index: 100;
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: white; border-radius: 28px 28px 0 0;
+    width: 100%; max-width: 640px; padding: 28px 24px 40px;
+    transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-overlay.show .modal-box { transform: translateY(0); }
+  .modal-handle { width: 40px; height: 4px; background: #E2E8F0; border-radius: 4px; margin: 0 auto 20px; }
+
+  /* ── CUSTOM INVOICE RESPONSIVE ── */
+  .ci-item-row {
+    display: grid;
+    grid-template-columns: 1fr 78px 78px 52px 34px;
+    gap: 5px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .ci-item-row input, .ci-item-row button, .ci-item-row div {
+    min-width: 0;
+  }
+  .ci-input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    background: white;
+    transition: border .2s;
+  }
+  .ci-input:focus { border-color: var(--blue-light); }
+  .ci-input-qty { text-align: center; padding: 9px 6px; }
+  .ci-del-btn {
+    width: 34px; height: 34px;
+    border: none; background: #FEE2E2;
+    border-radius: 8px; cursor: pointer;
+    color: var(--danger); font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; justify-self: center;
+  }
+  .ci-del-btn:hover { background: var(--danger); color: white; }
+
+  @media (max-width: 400px) {
+    .ci-item-row {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+    }
+    .ci-item-row .ci-name-input {
+      grid-column: 1 / -1;
+    }
+    .ci-item-row .ci-cost-input  { grid-column: 1; }
+    .ci-item-row .ci-price-input { grid-column: 2; }
+    .ci-item-row .ci-qty-input   { grid-column: 1; }
+    .ci-item-row .ci-del-wrap    { grid-column: 2; display: flex; justify-content: flex-end; margin-top: -2px; }
+    .modal-box { padding: 20px 14px 36px !important; }
+    #modal-custom-invoice .grid { grid-template-columns: 1fr !important; }
+    #modal-custom-invoice [style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+  @media (max-width: 360px) {
+    .ci-input { font-size: 12px; padding: 8px 8px; }
+    .modal-box { padding: 16px 12px 32px !important; }
+  }
+
+  /* ── INVOICE ── */
+  #invoice-preview {
+    font-family: 'Plus Jakarta Sans',sans-serif;
+    background: white; padding: 32px;
+    max-width: 400px; margin: 0 auto;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+    background: var(--text-main); color: white;
+    padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 14px;
+    z-index: 200; transition: transform .3s cubic-bezier(.32,.72,0,1);
+    white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 48px 24px; color: var(--text-muted);
+  }
+  .empty-state i { font-size: 48px; margin-bottom: 16px; color: #CBD5E1; }
+
+  /* ── IMAGE UPLOAD ── */
+  .image-upload-area {
+    border: 2px dashed var(--border); border-radius: 16px;
+    padding: 24px; text-align: center; cursor: pointer;
+    transition: border .2s, background .2s;
+  }
+  .image-upload-area:hover { border-color: var(--blue-light); background: var(--blue-pale); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .fade-up { animation: fadeUp .3s ease both; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  .pulse { animation: pulse 2s infinite; }
+
+  /* ── SCREEN SECTIONS ── */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp .3s ease; }
+
+  /* ── UDHAAR CARD ── */
+  .udhaar-item {
+    background: white; border-radius: 16px; padding: 16px;
+    border: 1px solid var(--border); margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+
+  /* ── TABS ── */
+  .tab-bar { display: flex; background: #F1F5F9; border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; text-align: center; padding: 9px 8px; border-radius: 10px; font-size: 13px;
+    font-weight: 700; cursor: pointer; color: var(--text-muted); transition: all .2s; }
+  .tab.active { background: white; color: var(--blue-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  /* ── STOCK CONTROLS ── */
+  .stock-ctrl { display: flex; align-items: center; gap: 8px; }
+  .stock-btn {
+    width: 30px; height: 30px; border-radius: 8px; border: none;
+    cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; transition: all .15s;
+  }
+  .stock-btn-plus { background: #D1FAE5; color: var(--success); }
+  .stock-btn-plus:hover { background: var(--success); color: white; }
+  .stock-btn-minus { background: #FEE2E2; color: var(--danger); }
+  .stock-btn-minus:hover { background: var(--danger); color: white; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════ AUTH SCREEN ════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card fade-up">
+    <div class="auth-logo">
+      <i class="fas fa-box-open" style="color:white;font-size:24px;"></i>
+    </div>
+    <h1 class="font-display text-center font-bold mb-1" style="font-size:22px;color:var(--text-main)">StockPro</h1>
+    <p class="text-center text-sm mb-8" style="color:var(--text-muted)">Product Management System</p>
+
+    <!-- Tabs -->
+    <div class="tab-bar mb-6">
+      <div class="tab active" id="tab-login" onclick="switchAuthTab('login')">Login</div>
+      <div class="tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+    </div>
+
+    <!-- Login Form -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Email / Username</label>
+        <input class="auth-input" id="login-email" type="text" placeholder="Enter your email" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="auth-input" id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <button class="btn-primary mt-2" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt mr-2"></i> Login to StockPro
+      </button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="form-register" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Business Name</label>
+        <input class="auth-input" id="reg-business" type="text" placeholder="e.g. Ali General Store">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input class="auth-input" id="reg-name" type="text" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="auth-input" id="reg-email" type="email" placeholder="your@email.com" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="auth-input" id="reg-password" type="password" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input class="auth-input" id="reg-confirm" type="password" placeholder="Re-enter password" autocomplete="new-password">
+      </div>
+      <button class="btn-primary mt-2" onclick="doRegister()">
+        <i class="fas fa-user-plus mr-2"></i> Create Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ APP SCREEN ════════════════════════════ -->
+<div id="app-screen">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div>
+      <div class="font-display font-bold text-blue-700" id="top-business-name" style="font-size:17px;"></div>
+      <div id="top-date" style="font-size:11px;color:var(--text-muted);"></div>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Low Stock Bell Notification -->
+      <button onclick="openLowStockNotif()" class="icon-btn icon-btn-blue" title="Low Stock Alerts" style="position:relative;">
+        <i class="fas fa-bell"></i>
+        <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:white;font-size:9px;font-weight:800;border-radius:50%;width:16px;height:16px;align-items:center;justify-content:center;border:2px solid white;"></span>
+      </button>
+      <!-- Cart Icon -->
+      <button onclick="openCartModal()" class="icon-btn icon-btn-blue" title="Cart" style="position:relative;">
+        <i class="fas fa-shopping-cart"></i>
+        <span id="cart-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue-primary);color:white;font-size:9px;font-weight:800;border-radius:50%;width:16px;height:16px;align-items:center;justify-content:center;border:2px solid white;"></span>
+      </button>
+      <!-- Custom Invoice -->
+      <button onclick="openCustomInvoice()" class="icon-btn icon-btn-blue" title="Custom Invoice Banao">
+        <i class="fas fa-file-invoice"></i>
+      </button>
+      <!-- Settings Icon -->
+      <button onclick="switchScreen('settings')" class="icon-btn icon-btn-blue" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="section-content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="mb-5">
+        <div class="section-title">Dashboard</div>
+        <div class="section-sub">Welcome back! Here's your overview.</div>
+      </div>
+
+      <!-- Aaj / Is Mahine Toggle -->
+      <div class="tab-bar mb-4" style="margin-bottom:14px;">
+        <div class="tab active" id="dash-tab-today" onclick="setDashPeriod('today',this)"><i class="fas fa-sun mr-1"></i> Aaj</div>
+        <div class="tab" id="dash-tab-month" onclick="setDashPeriod('month',this)"><i class="fas fa-calendar-alt mr-1"></i> Is Mahine</div>
+        <div class="tab" id="dash-tab-alltime" onclick="setDashPeriod('alltime',this)"><i class="fas fa-infinity mr-1"></i> Sab</div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 gap-3 mb-5" id="stats-grid">
+        <div class="stat-card" style="background:linear-gradient(135deg,#1D4ED8,#3B82F6);color:white;">
+          <div class="stat-icon" style="background:rgba(255,255,255,0.2);">
+            <i class="fas fa-coins" style="color:white;"></i>
+          </div>
+          <div class="stat-value" id="stat-sales">Rs 0</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8)" id="label-sales">Aaj ki Sales</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#10B981,#34D399);color:white;">
+          <div class="stat-icon" style="background:rgba(255,255,255,0.2);">
+            <i class="fas fa-chart-line" style="color:white;"></i>
+          </div>
+          <div class="stat-value" id="stat-profit">Rs 0</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8)" id="label-profit">Aaj ka Faida</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);color:white;">
+          <div class="stat-icon" style="background:rgba(255,255,255,0.2);">
+            <i class="fas fa-hand-holding-usd" style="color:white;"></i>
+          </div>
+          <div class="stat-value" id="stat-udhaar">Rs 0</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8)">Pending Udhaar</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA);color:white;">
+          <div class="stat-icon" style="background:rgba(255,255,255,0.2);">
+            <i class="fas fa-shopping-bag" style="color:white;"></i>
+          </div>
+          <div class="stat-value" id="stat-orders">0</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8)" id="label-orders">Kull Orders</div>
+        </div>
+      </div>
+
+      <!-- Weekly Sales Chart -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-bold" style="font-size:15px;"><i class="fas fa-chart-bar mr-2" style="color:var(--blue-primary);"></i>Is Hafte ki Sales</div>
+          <div id="weekly-total-badge" class="badge badge-blue" style="font-size:12px;"></div>
+        </div>
+        <div id="weekly-chart" style="display:flex;align-items:flex-end;gap:6px;height:90px;padding:0 4px;"></div>
+        <div id="weekly-labels" style="display:flex;gap:6px;margin-top:6px;padding:0 4px;"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="font-bold mb-3" style="font-size:15px;"><i class="fas fa-bolt mr-2" style="color:var(--warning);"></i>Quick Actions</div>
+        <div class="grid grid-cols-4 gap-2">
+          <button onclick="switchScreen('sales')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:14px;border:none;background:var(--blue-pale);cursor:pointer;">
+            <i class="fas fa-cash-register" style="font-size:20px;color:var(--blue-primary);"></i>
+            <span style="font-size:10px;font-weight:700;color:var(--blue-primary);">New Sale</span>
+          </button>
+          <button onclick="openAddProduct()" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:14px;border:none;background:#D1FAE5;cursor:pointer;">
+            <i class="fas fa-plus-circle" style="font-size:20px;color:var(--success);"></i>
+            <span style="font-size:10px;font-weight:700;color:var(--success);">Add Product</span>
+          </button>
+          <button onclick="switchScreen('udhaar')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:14px;border:none;background:#FEF3C7;cursor:pointer;">
+            <i class="fas fa-users" style="font-size:20px;color:var(--warning);"></i>
+            <span style="font-size:10px;font-weight:700;color:var(--warning);">Udhaar</span>
+          </button>
+          <button onclick="switchScreen('history')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:14px;border:none;background:#F3E8FF;cursor:pointer;">
+            <i class="fas fa-history" style="font-size:20px;color:#8B5CF6;"></i>
+            <span style="font-size:10px;font-weight:700;color:#8B5CF6;">History</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Selling Products -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-bold" style="font-size:15px;"><i class="fas fa-fire mr-2" style="color:var(--danger);"></i>Top Products</div>
+          <span style="font-size:11px;color:var(--text-muted);">Is mahine</span>
+        </div>
+        <div id="top-products-list">
+          <div class="empty-state" style="padding:16px 0;"><i class="fas fa-box-open" style="font-size:28px;"></i><p class="text-sm mt-2">Abhi koi sale nahi hui</p></div>
+        </div>
+      </div>
+
+      <!-- Stock Summary -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="font-bold mb-3" style="font-size:15px;"><i class="fas fa-boxes mr-2" style="color:#8B5CF6;"></i>Stock Summary</div>
+        <div class="grid grid-cols-3 gap-3">
+          <div style="text-align:center;background:#F0FDF4;border-radius:12px;padding:12px 6px;">
+            <div id="stock-total-products" style="font-size:22px;font-weight:800;color:var(--success);font-family:'Space Grotesk',sans-serif;">0</div>
+            <div style="font-size:10px;font-weight:700;color:#065F46;margin-top:2px;">Total Products</div>
+          </div>
+          <div style="text-align:center;background:#FEF3C7;border-radius:12px;padding:12px 6px;">
+            <div id="stock-low-count" style="font-size:22px;font-weight:800;color:var(--warning);font-family:'Space Grotesk',sans-serif;">0</div>
+            <div style="font-size:10px;font-weight:700;color:#92400E;margin-top:2px;">Low Stock</div>
+          </div>
+          <div style="text-align:center;background:#FEE2E2;border-radius:12px;padding:12px 6px;">
+            <div id="stock-out-count" style="font-size:22px;font-weight:800;color:var(--danger);font-family:'Space Grotesk',sans-serif;">0</div>
+            <div style="font-size:10px;font-weight:700;color:#991B1B;margin-top:2px;">Out of Stock</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Sales -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <div class="font-bold" style="font-size:15px;">Recent Transactions</div>
+          <button onclick="switchScreen('history')" class="text-sm font-bold" style="color:var(--blue-primary);">View All</button>
+        </div>
+        <div id="recent-txns">
+          <div class="empty-state" style="padding:20px 0;">
+            <i class="fas fa-receipt" style="font-size:32px;"></i>
+            <p class="text-sm mt-2">No transactions yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PRODUCTS ═══ -->
+    <div class="screen" id="screen-products">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <div class="section-title">Products</div>
+          <div class="section-sub">Manage your inventory</div>
+        </div>
+        <button class="btn-primary" style="width:auto;padding:10px 16px;font-size:13px;" onclick="openAddProduct()">
+          <i class="fas fa-plus mr-1"></i> Add
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="relative mb-4">
+        <i class="fas fa-search absolute" style="left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;"></i>
+        <input class="form-input" style="padding-left:40px;" id="product-search" placeholder="Search products..." oninput="renderProducts()">
+      </div>
+
+      <div id="products-list"></div>
+    </div>
+
+    <!-- ═══ SALES / POS ═══ -->
+    <div class="screen" id="screen-sales">
+      <div class="mb-5">
+        <div class="section-title">Point of Sale</div>
+        <div class="section-sub">Products tap karen, cart mein add ho jayenge</div>
+      </div>
+
+      <!-- Search -->
+      <div class="relative mb-4">
+        <i class="fas fa-search absolute" style="left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;"></i>
+        <input class="form-input" style="padding-left:40px;" id="pos-search" placeholder="Search products..." oninput="renderPOS()">
+      </div>
+
+      <!-- Product Grid -->
+      <div class="grid grid-cols-2 gap-3 mb-5" id="pos-grid"></div>
+    </div>
+
+    <!-- Floating Cart Button (POS only) -->
+    <div id="pos-float-cart" style="display:none;position:fixed;bottom:80px;right:16px;z-index:45;">
+      <button onclick="openCartModal()" style="background:linear-gradient(135deg,#1D4ED8,#3B82F6);color:white;border:none;border-radius:20px;padding:14px 20px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(29,78,216,0.45);display:flex;align-items:center;gap:10px;position:relative;">
+        <i class="fas fa-shopping-cart" style="font-size:18px;"></i>
+        <span>Cart dekhein</span>
+        <span id="pos-float-badge" style="background:#EF4444;color:white;font-size:11px;font-weight:800;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:2px solid white;">0</span>
+      </button>
+    </div>
+
+    <!-- ═══ HISTORY ═══ -->
+    <div class="screen" id="screen-history">
+      <div class="mb-5">
+        <div class="section-title">History</div>
+        <div class="section-sub">All past transactions</div>
+      </div>
+      <!-- Filter Tabs -->
+      <div class="tab-bar">
+        <div class="tab active" onclick="filterHistory('all',this)">All</div>
+        <div class="tab" onclick="filterHistory('paid',this)">Paid</div>
+        <div class="tab" onclick="filterHistory('udhaar',this)">Udhaar</div>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- ═══ UDHAAR ═══ -->
+    <div class="screen" id="screen-udhaar">
+      <div class="mb-5">
+        <div class="section-title">Udhaar</div>
+        <div class="section-sub">Pending credit customers</div>
+      </div>
+      <!-- Total Card -->
+      <div class="card mb-4" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);border:none;">
+        <div class="flex items-center justify-between text-white">
+          <div>
+            <div style="font-size:13px;opacity:.85;font-weight:600;">Total Pending</div>
+            <div id="udhaar-total" class="font-bold" style="font-size:28px;font-family:'Space Grotesk',sans-serif;">Rs 0</div>
+          </div>
+          <i class="fas fa-hand-holding-usd" style="font-size:40px;opacity:.4;"></i>
+        </div>
+      </div>
+      <!-- Search Bar -->
+      <div class="relative mb-4">
+        <i class="fas fa-search absolute" style="left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;"></i>
+        <input class="form-input" style="padding-left:40px;" id="udhaar-search" placeholder="Search customer name..." oninput="renderUdhaar()">
+      </div>
+      <div id="udhaar-list"></div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="screen" id="screen-settings">
+
+      <!-- Profile Header Card -->
+      <div style="background:linear-gradient(135deg,#1D4ED8,#0EA5E9);border-radius:24px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+        <div style="position:absolute;bottom:-30px;left:40px;width:80px;height:80px;background:rgba(255,255,255,0.06);border-radius:50%;"></div>
+        <div style="display:flex;align-items:center;gap:16px;position:relative;">
+          <div id="settings-avatar" style="width:60px;height:60px;border-radius:18px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:24px;flex-shrink:0;border:2px solid rgba(255,255,255,0.3);"></div>
+          <div>
+            <div id="settings-name" style="font-size:18px;font-weight:800;color:white;font-family:'Space Grotesk',sans-serif;"></div>
+            <div id="settings-business" style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;margin-top:2px;"></div>
+            <div id="settings-email" style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-lock" style="color:var(--blue-primary);font-size:14px;"></i>
+          </div>
+          <div class="font-bold" style="font-size:15px;">Password Change</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Purana Password</label>
+          <input class="form-input" id="set-old-pass" type="password" placeholder="Current password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Naya Password</label>
+          <input class="form-input" id="set-new-pass" type="password" placeholder="Min 6 characters">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Confirm Password</label>
+          <input class="form-input" id="set-confirm-pass" type="password" placeholder="Re-enter new password">
+        </div>
+        <button class="btn-primary mt-3" onclick="changePassword()">
+          <i class="fas fa-key mr-2"></i> Update Password
+        </button>
+      </div>
+
+      <!-- Invoice Settings -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-file-invoice" style="color:var(--blue-primary);font-size:14px;"></i>
+          </div>
+          <div class="font-bold" style="font-size:15px;">Invoice Settings</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Business Name</label>
+          <input class="form-input" id="inv-biz-name" placeholder="Your business name">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <input class="form-input" id="inv-address" placeholder="City / Area">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input class="form-input" id="inv-phone" placeholder="+92 300 0000000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Footer Text</label>
+          <input class="form-input" id="inv-footer" placeholder="Shukriya! Dobara aana 🙏">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Owner Signature Name</label>
+          <input class="form-input" id="inv-signature" placeholder="e.g. Muhammad Ali">
+          <div style="font-size:11px;color:#94A3B8;margin-top:5px;"><i class="fas fa-info-circle mr-1"></i> Yeh invoice mein signature style mein dikhega</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label"><i class="fab fa-facebook" style="color:#1877F2;margin-right:4px;"></i>Facebook Page</label>
+            <input class="form-input" id="inv-facebook" placeholder="facebook.com/aapkadukan">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fas fa-globe" style="color:var(--blue-primary);margin-right:4px;"></i>Website</label>
+            <input class="form-input" id="inv-website" placeholder="www.aapkadukan.com">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Shop Logo</label>
+          <div class="image-upload-area" onclick="document.getElementById('inv-logo-file').click()" style="padding:14px;display:flex;align-items:center;gap:12px;">
+            <div id="inv-logo-preview-wrap" style="display:none;"><img id="inv-logo-preview" style="height:44px;width:44px;object-fit:contain;border-radius:8px;" src=""></div>
+            <div id="inv-logo-placeholder" style="display:flex;align-items:center;gap:10px;">
+              <div style="width:44px;height:44px;border-radius:10px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-store" style="font-size:18px;color:var(--blue-light);"></i>
+              </div>
+              <div>
+                <div class="text-sm font-bold" style="color:var(--text-muted);">Logo upload karein</div>
+                <div style="font-size:11px;color:#94A3B8;">JPG, PNG</div>
+              </div>
+            </div>
+            <input type="file" id="inv-logo-file" accept="image/*" style="display:none;" onchange="previewInvLogo(event)">
+          </div>
+        </div>
+        <button class="btn-primary mt-3" onclick="saveInvoiceSettings()">
+          <i class="fas fa-save mr-2"></i> Save Invoice Settings
+        </button>
+      </div>
+
+      <!-- Data Backup -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-database" style="color:var(--success);font-size:14px;"></i>
+          </div>
+          <div>
+            <div class="font-bold" style="font-size:15px;">Data Backup</div>
+            <div style="font-size:12px;color:var(--text-muted);">Products, sales, udhaar backup karein</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="exportData()" class="btn-primary" style="background:linear-gradient(135deg,#10B981,#34D399);box-shadow:0 4px 14px rgba(16,185,129,0.3);">
+            <i class="fas fa-download mr-2"></i> Export
+          </button>
+          <button onclick="document.getElementById('import-file').click()" class="btn-primary" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA);box-shadow:0 4px 14px rgba(139,92,246,0.3);">
+            <i class="fas fa-upload mr-2"></i> Import
+          </button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)">
+      </div>
+
+      <!-- Logout -->
+      <button onclick="doLogout()" style="width:100%;padding:14px;border-radius:16px;border:2px solid var(--danger);color:var(--danger);background:white;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:8px;">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+      </button>
+
+    </div><!-- end screen-settings -->
+
+  </div><!-- end section-content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-dashboard" onclick="switchScreen('dashboard')">
+      <i class="fas fa-chart-pie"></i>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-products" onclick="switchScreen('products')">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
+    </button>
+    <button class="nav-item sell-btn" id="nav-sales" onclick="switchScreen('sales')">
+      <div class="sell-inner">
+        <i class="fas fa-cash-register" style="font-size:22px;"></i>
+        <span style="font-size:10px;font-weight:700;">POS</span>
+      </div>
+    </button>
+    <button class="nav-item" id="nav-history" onclick="switchScreen('history')">
+      <i class="fas fa-history"></i>
+      <span>History</span>
+    </button>
+    <button class="nav-item" id="nav-udhaar" onclick="switchScreen('udhaar')">
+      <i class="fas fa-users"></i>
+      <span>Udhaar</span>
+    </button>
+  </div>
+
+</div><!-- end app-screen -->
+
+<!-- ════════════════════════════ MODALS ════════════════════════════ -->
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-5">
+      <div class="font-bold font-display" style="font-size:18px;" id="modal-product-title">Add Product</div>
+      <button onclick="closeModal('modal-product')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <input type="hidden" id="edit-product-id">
+
+    <!-- Image Upload -->
+    <div class="form-group">
+      <label class="form-label">Product Image</label>
+      <div class="image-upload-area" onclick="document.getElementById('product-image-file').click()">
+        <div id="img-preview-container" style="display:none;">
+          <img id="img-preview" style="width:80px;height:80px;object-fit:cover;border-radius:12px;margin:0 auto;" src="">
+        </div>
+        <div id="img-placeholder">
+          <i class="fas fa-camera mb-2" style="font-size:28px;color:var(--blue-light);display:block;"></i>
+          <div class="text-sm font-bold" style="color:var(--text-muted);">Tap to upload image</div>
+          <div class="text-xs" style="color:#94A3B8;">JPG, PNG supported</div>
+        </div>
+        <input type="file" id="product-image-file" accept="image/*" style="display:none;" onchange="previewImage(event)">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Product Name *</label>
+      <input class="form-input" id="prod-name" placeholder="e.g. Sunsilk Shampoo 200ml">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-input" id="prod-category">
+          <option value="">Select category</option>
+          <option>Grocery</option>
+          <option>Cosmetics</option>
+          <option>Electronics</option>
+          <option>Clothing</option>
+          <option>Beverages</option>
+          <option>Snacks</option>
+          <option>Medicine</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sale Price (Rs) *</label>
+        <input class="form-input" id="prod-price" type="number" placeholder="0">
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="form-group">
+        <label class="form-label">Cost Price (Rs)</label>
+        <input class="form-input" id="prod-cost" type="number" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stock Quantity *</label>
+        <input class="form-input" id="prod-stock" type="number" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Low Stock Alert (Qty)</label>
+      <input class="form-input" id="prod-low-stock" type="number" placeholder="5">
+    </div>
+
+    <button class="btn-primary mt-2" onclick="saveProduct()">
+      <i class="fas fa-save mr-2"></i> Save Product
+    </button>
+  </div>
+</div>
+
+<!-- Invoice Modal -->
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <div class="font-bold font-display" style="font-size:18px;">Invoice</div>
+      <div class="flex gap-2">
+        <button id="wa-send-btn" onclick="sendWhatsApp()" class="icon-btn" style="background:#25D366;color:white;display:flex;" title="WhatsApp par bhejein">
+          <i class="fab fa-whatsapp" style="font-size:16px;"></i>
+        </button>
+
+        <button onclick="printInvoice()" class="icon-btn icon-btn-blue"><i class="fas fa-print"></i></button>
+        <button onclick="closeModal('modal-invoice')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div id="invoice-preview"></div>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div class="modal-overlay" id="modal-cart">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <div class="font-bold font-display" style="font-size:18px;"><i class="fas fa-shopping-cart mr-2" style="color:var(--blue-primary);"></i>Cart</div>
+      <div class="flex gap-2">
+        <button onclick="closeModal('modal-cart')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div id="cart-items">
+      <div class="empty-state" style="padding:24px 0;">
+        <i class="fas fa-shopping-cart" style="font-size:36px;"></i>
+        <p class="text-sm mt-2">Cart is empty.<br>Select products from POS.</p>
+      </div>
+    </div>
+
+    <div id="cart-footer" style="display:none;">
+      <div class="flex items-center justify-between mt-4 pt-3" style="border-top:2px dashed var(--border);">
+        <span class="font-bold">Total:</span>
+        <span class="font-bold text-xl" style="color:var(--blue-primary);" id="cart-total">Rs 0</span>
+      </div>
+      <!-- Payment Type -->
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button id="btn-paid" onclick="setPayType('paid')"
+          class="py-3 rounded-2xl font-bold text-sm transition-all"
+          style="border:2px solid var(--success);color:var(--success);background:white;">
+          <i class="fas fa-check-circle mr-1"></i> Paid
+        </button>
+        <button id="btn-udhaar" onclick="setPayType('udhaar')"
+          class="py-3 rounded-2xl font-bold text-sm transition-all"
+          style="border:2px solid var(--warning);color:var(--warning);background:white;">
+          <i class="fas fa-hand-holding-usd mr-1"></i> Udhaar
+        </button>
+      </div>
+      <!-- Customer Info Fields (Both Paid & Udhaar) -->
+      <div id="customer-fields" class="mt-3" style="background:#F8FAFC;border-radius:14px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;"><i class="fas fa-user mr-1"></i> Customer Info</div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label" style="font-size:12px;">Customer Name <span id="cust-name-required" style="color:var(--danger);">*</span></label>
+          <input class="form-input" id="customer-name" placeholder="Customer ka naam" style="font-size:13px;padding:10px 12px;">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label" style="font-size:12px;">Phone Number (Optional)</label>
+          <input class="form-input" id="customer-phone" placeholder="0300-0000000" type="tel" style="font-size:13px;padding:10px 12px;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Address (Optional)</label>
+          <input class="form-input" id="customer-address" placeholder="Ghar ya dukan ka pata" style="font-size:13px;padding:10px 12px;">
+        </div>
+      </div>
+      <!-- Purana Udhaar Section (Cart) -->
+      <div style="margin-top:14px;">
+        <button onclick="toggleCartPuranaUdhaar()" id="cart-pu-toggle-btn"
+          style="width:100%;padding:10px 14px;border-radius:12px;border:2px dashed #F59E0B;background:#FFFBEB;color:#92400E;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <span><i class="fas fa-clock-rotate-left mr-2" style="color:#F59E0B;"></i> Purana Udhaar Add Karein</span>
+          <i class="fas fa-chevron-down" id="cart-pu-chevron" style="color:#F59E0B;font-size:12px;transition:transform .2s;"></i>
+        </button>
+        <div id="cart-purana-udhaar-section" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:0 0 12px 12px;padding:12px;margin-top:-2px;">
+          <div style="font-size:11px;color:#92400E;font-weight:600;margin-bottom:8px;"><i class="fas fa-info-circle mr-1"></i> Pehle se baqi udhaar invoice mein alag dikhao (date/time ke saath)</div>
+          <div id="cart-pu-list"></div>
+          <button onclick="addCartPuranaEntry()" style="width:100%;padding:7px;border-radius:8px;border:1.5px dashed #F59E0B;background:transparent;color:#92400E;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;margin-top:4px;">
+            <i class="fas fa-plus mr-1"></i> Entry Add Karein
+          </button>
+          <div id="cart-pu-total-row" style="display:none;display:flex;justify-content:space-between;align-items:center;padding-top:8px;margin-top:6px;border-top:1px dashed #F59E0B;">
+            <span style="font-size:12px;font-weight:700;color:#92400E;">Purana Udhaar Total:</span>
+            <span style="font-size:15px;font-weight:800;color:#D97706;" id="cart-pu-total">Rs 0</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary mt-4" onclick="processSale()">
+        <i class="fas fa-receipt mr-2"></i> Complete Sale
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit History Modal -->
+<div class="modal-overlay" id="modal-edit-history">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-5">
+      <div class="font-bold font-display" style="font-size:18px;"><i class="fas fa-edit mr-2" style="color:var(--blue-primary);"></i>Edit Transaction</div>
+      <button onclick="closeModal('modal-edit-history')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+    </div>
+    <input type="hidden" id="edit-hist-id">
+    <div style="background:#F8FAFC;border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;"><i class="fas fa-user mr-1"></i> Customer Info</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" style="font-size:12px;">Customer Name</label>
+        <input class="form-input" id="eh-customer" placeholder="Customer ka naam" style="font-size:13px;padding:10px 12px;">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" style="font-size:12px;">Phone Number</label>
+        <input class="form-input" id="eh-phone" placeholder="0300-0000000" type="tel" style="font-size:13px;padding:10px 12px;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" style="font-size:12px;">Address</label>
+        <input class="form-input" id="eh-address" placeholder="Ghar ya dukan ka pata" style="font-size:13px;padding:10px 12px;">
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Payment Type</label>
+      <div class="grid grid-cols-2 gap-3">
+        <button id="eh-btn-paid" onclick="setEditPayType('paid')"
+          class="py-3 rounded-2xl font-bold text-sm transition-all"
+          style="border:2px solid var(--success);color:var(--success);background:white;">
+          <i class="fas fa-check-circle mr-1"></i> Paid
+        </button>
+        <button id="eh-btn-udhaar" onclick="setEditPayType('udhaar')"
+          class="py-3 rounded-2xl font-bold text-sm transition-all"
+          style="border:2px solid var(--warning);color:var(--warning);background:white;">
+          <i class="fas fa-hand-holding-usd mr-1"></i> Udhaar
+        </button>
+      </div>
+    </div>
+    <div style="background:#F8FAFC;border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;"><i class="fas fa-box mr-1"></i> Items</div>
+      <div id="eh-items-list"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+        <span class="font-bold" style="font-size:13px;">Total:</span>
+        <span class="font-bold" style="color:var(--blue-primary);font-size:16px;" id="eh-total-display">Rs 0</span>
+      </div>
+    </div>
+    <!-- Purana Udhaar Section (Edit History) -->
+    <div style="margin-bottom:16px;">
+      <button onclick="toggleEhPuranaUdhaar()" id="eh-pu-toggle-btn"
+        style="width:100%;padding:10px 14px;border-radius:12px;border:2px dashed #F59E0B;background:#FFFBEB;color:#92400E;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-clock-rotate-left mr-2" style="color:#F59E0B;"></i> Purana Udhaar Add/Edit Karein</span>
+        <i class="fas fa-chevron-down" id="eh-pu-chevron" style="color:#F59E0B;font-size:12px;transition:transform .2s;"></i>
+      </button>
+      <div id="eh-purana-udhaar-section" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:0 0 12px 12px;padding:12px;margin-top:-2px;">
+        <div style="font-size:11px;color:#92400E;font-weight:600;margin-bottom:8px;"><i class="fas fa-info-circle mr-1"></i> Pehle se baqi udhaar — date/time ke saath</div>
+        <div id="eh-pu-list"></div>
+        <button onclick="addEhPuranaEntry()" style="width:100%;padding:7px;border-radius:8px;border:1.5px dashed #F59E0B;background:transparent;color:#92400E;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;margin-top:4px;">
+          <i class="fas fa-plus mr-1"></i> Entry Add Karein
+        </button>
+        <div id="eh-pu-total-row" style="display:none;justify-content:space-between;align-items:center;padding-top:8px;margin-top:6px;border-top:1px dashed #F59E0B;">
+          <span style="font-size:12px;font-weight:700;color:#92400E;">Purana Udhaar Total:</span>
+          <span style="font-size:15px;font-weight:800;color:#D97706;" id="eh-pu-total">Rs 0</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveHistoryEdit()">
+      <i class="fas fa-save mr-2"></i> Save Changes
+    </button>
+  </div>
+</div>
+
+<!-- Low Stock Notification Modal -->
+<div class="modal-overlay" id="modal-lowstock">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <div class="font-bold font-display" style="font-size:18px;"><i class="fas fa-bell mr-2" style="color:var(--warning);"></i>Low Stock Alerts</div>
+      <button onclick="closeModal('modal-lowstock')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="lowstock-notif-list"></div>
+  </div>
+</div>
+
+<!-- Partial Payment Modal -->
+<div class="modal-overlay" id="modal-partial-pay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <div class="font-bold font-display" style="font-size:18px;"><i class="fas fa-coins mr-2" style="color:var(--warning);"></i>Udhaar Wapsi</div>
+      <button onclick="closeModal('modal-partial-pay')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="partial-pay-info" style="background:#FFFBEB;border-radius:14px;padding:14px;margin-bottom:16px;border:1px solid #FDE68A;">
+      <div style="font-size:13px;color:#92400E;font-weight:700;" id="partial-cust-name"></div>
+      <div style="font-size:22px;font-weight:800;color:var(--danger);font-family:'Space Grotesk',sans-serif;" id="partial-balance-show"></div>
+      <div style="font-size:12px;color:#92400E;">Baqi bacha hua udhaar</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wapsi ki Raqam (Rs)</label>
+      <input class="form-input" id="partial-amount" type="number" placeholder="Kitne paise wapa kar rahe hain?" style="font-size:15px;">
+    </div>
+    <div id="partial-remaining-preview" style="display:none;background:#F0FDF4;border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid #BBF7D0;">
+      <div style="font-size:12px;color:#065F46;font-weight:600;">Baad mein bacha udhaar:</div>
+      <div style="font-size:18px;font-weight:800;color:var(--success);" id="partial-remaining-val">Rs 0</div>
+    </div>
+    <input type="hidden" id="partial-udhaar-id">
+    <button class="btn-primary" onclick="confirmPartialPayment()" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);box-shadow:0 8px 24px rgba(245,158,11,0.35);">
+      <i class="fas fa-check mr-2"></i> Wapsi Confirm Karein
+    </button>
+  </div>
+</div>
+
+<!-- Custom Invoice Modal -->
+<div class="modal-overlay" id="modal-custom-invoice">
+  <div class="modal-box" style="max-height:92vh;">
+    <div class="modal-handle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <div class="font-bold font-display" style="font-size:18px;"><i class="fas fa-file-invoice mr-2" style="color:var(--blue-primary);"></i>Custom Invoice</div>
+      <button onclick="closeModal('modal-custom-invoice')" class="icon-btn" style="background:#F1F5F9;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Customer Info -->
+    <div style="background:#F8FAFC;border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;"><i class="fas fa-user mr-1"></i> Customer Info</div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label class="form-label" style="font-size:12px;">Customer Name</label>
+        <input class="form-input" id="ci-customer" placeholder="Customer ka naam" style="font-size:13px;padding:10px 12px;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Phone</label>
+          <input class="form-input" id="ci-phone" type="tel" placeholder="0300-0000000" style="font-size:13px;padding:10px 12px;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Status</label>
+          <select class="form-input" id="ci-paytype" style="font-size:13px;padding:10px 12px;">
+            <option value="paid">Paid</option>
+            <option value="udhaar">Udhaar</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div style="background:#F8FAFC;border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;"><i class="fas fa-box mr-1"></i> Items</div>
+      <div id="ci-items-list"></div>
+      <button onclick="addCustomInvoiceItem()" style="width:100%;padding:8px;border-radius:10px;border:2px dashed var(--border);background:transparent;color:var(--blue-primary);font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;margin-top:6px;">
+        <i class="fas fa-plus mr-1"></i> Item Add Karein
+      </button>
+    </div>
+
+    <!-- Purana Udhaar Section (Custom Invoice) -->
+    <div style="margin-bottom:14px;">
+      <button onclick="toggleCiPuranaUdhaar()" id="ci-pu-toggle-btn"
+        style="width:100%;padding:10px 14px;border-radius:12px;border:2px dashed #F59E0B;background:#FFFBEB;color:#92400E;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-clock-rotate-left mr-2" style="color:#F59E0B;"></i> Purana Udhaar Add Karein</span>
+        <i class="fas fa-chevron-down" id="ci-pu-chevron" style="color:#F59E0B;font-size:12px;transition:transform .2s;"></i>
+      </button>
+      <div id="ci-purana-udhaar-section" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:0 0 12px 12px;padding:12px;margin-top:-2px;">
+        <div style="font-size:11px;color:#92400E;font-weight:600;margin-bottom:8px;"><i class="fas fa-info-circle mr-1"></i> Pehle se baqi udhaar invoice mein alag dikhao (date/time ke saath)</div>
+        <div id="ci-pu-list"></div>
+        <button onclick="addCiPuranaEntry()" style="width:100%;padding:7px;border-radius:8px;border:1.5px dashed #F59E0B;background:transparent;color:#92400E;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;margin-top:4px;">
+          <i class="fas fa-plus mr-1"></i> Entry Add Karein
+        </button>
+        <div id="ci-pu-total-row" style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;margin-top:6px;border-top:1px dashed #F59E0B;display:none;">
+          <span style="font-size:12px;font-weight:700;color:#92400E;">Purana Udhaar Total:</span>
+          <span style="font-size:15px;font-weight:800;color:#D97706;" id="ci-pu-total">Rs 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total & Profit Preview -->
+    <div style="background:var(--blue-pale);border-radius:12px;padding:12px 16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span class="font-bold" style="color:var(--blue-dark);">Total (Sale):</span>
+        <span class="font-bold" style="font-size:20px;color:var(--blue-primary);font-family:'Space Grotesk',sans-serif;" id="ci-total-display">Rs 0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px dashed #BFDBFE;">
+        <span style="font-size:13px;font-weight:700;color:var(--text-muted);">Mutawaqqa Faida:</span>
+        <span style="font-size:16px;font-weight:800;font-family:'Space Grotesk',sans-serif;" id="ci-profit-display">Rs 0</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="generateCustomInvoice()">
+      <i class="fas fa-file-invoice mr-2"></i> Invoice Generate Karein
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toast-icon"></i><span id="toast-msg"></span></div>
+
+<!-- ════════════════════════════ JAVASCRIPT ════════════════════════════ -->
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────
+let currentUser = null;
+let products = [];
+let sales = [];
+let udhaarData = [];
+let cart = [];
+let payType = 'paid';
+let currentImageData = '';
+let historyFilter = 'all';
+let editingProductId = null;
+
+// ─── STORAGE HELPERS ──────────────────────────────────────────────────
+function getKey(k) { return currentUser ? `stockpro_${currentUser.email}_${k}` : null; }
+function save(k, v) { if(currentUser) localStorage.setItem(getKey(k), JSON.stringify(v)); }
+function load(k, def=[]) { const d=localStorage.getItem(getKey(k)); return d?JSON.parse(d):def; }
+
+let cartPuranaUdhaar = [];  // cart modal ke liye
+let ciPuranaUdhaar   = [];  // custom invoice ke liye
+let ehPuranaUdhaar   = [];  // edit history ke liye
+let cartPuOpen = false;
+let ciPuOpen   = false;
+let ehPuOpen   = false;
+let dashPeriod = 'today'; // 'today' | 'month' | 'alltime'
+
+// ─── PURANA UDHAAR - CART ─────────────────────────────────────────────
+function toggleCartPuranaUdhaar() {
+  cartPuOpen = !cartPuOpen;
+  const sec = document.getElementById('cart-purana-udhaar-section');
+  const chev = document.getElementById('cart-pu-chevron');
+  if(sec) sec.style.display = cartPuOpen ? 'block' : 'none';
+  if(chev) chev.style.transform = cartPuOpen ? 'rotate(180deg)' : 'rotate(0)';
+  if(cartPuOpen && cartPuranaUdhaar.length === 0) {
+    cartPuranaUdhaar = [{amount:0, date: nowDateTimeLocal(), note:''}];
+    renderCartPuList();
+  }
+}
+function addCartPuranaEntry() {
+  cartPuranaUdhaar.push({amount:0, date: nowDateTimeLocal(), note:''});
+  renderCartPuList();
+}
+function removeCartPuranaEntry(i) {
+  cartPuranaUdhaar.splice(i,1);
+  renderCartPuList();
+}
+function renderCartPuList() {
+  const el = document.getElementById('cart-pu-list');
+  if(!el) return;
+  el.innerHTML = cartPuranaUdhaar.map((e,i)=>`
+    <div style="background:white;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #FDE68A;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 30px;gap:6px;align-items:start;">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">RAQAM (Rs)</div>
+          <input type="number" placeholder="0" value="${e.amount||''}" min="0"
+            style="width:100%;padding:8px 10px;border:1.5px solid #FDE68A;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#FFFBEB;"
+            oninput="cartPuranaUdhaar[${i}].amount=parseFloat(this.value)||0;updateCartPuTotal()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">DATE & TIME</div>
+          <input type="datetime-local" value="${e.date}"
+            style="width:100%;padding:7px 8px;border:1.5px solid #FDE68A;border-radius:8px;font-size:11px;font-family:inherit;outline:none;background:#FFFBEB;"
+            onchange="cartPuranaUdhaar[${i}].date=this.value">
+        </div>
+        <button onclick="removeCartPuranaEntry(${i})" style="margin-top:18px;width:28px;height:28px;border:none;background:#FEE2E2;border-radius:7px;color:#EF4444;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+      <div style="margin-top:6px;">
+        <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">NOTE (Ikhtiyari)</div>
+        <input type="text" placeholder="e.g. Pichle mahine ka hisab" value="${e.note}"
+          style="width:100%;padding:7px 10px;border:1.5px solid #FDE68A;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#FFFBEB;"
+          oninput="cartPuranaUdhaar[${i}].note=this.value">
+      </div>
+    </div>`).join('');
+  updateCartPuTotal();
+}
+function updateCartPuTotal() {
+  const total = cartPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+  const el = document.getElementById('cart-pu-total');
+  const row = document.getElementById('cart-pu-total-row');
+  if(el) el.textContent = 'Rs '+fmt(total);
+  if(row) row.style.display = total>0 ? 'flex' : 'none';
+}
+
+// ─── PURANA UDHAAR - CUSTOM INVOICE ──────────────────────────────────
+function toggleCiPuranaUdhaar() {
+  ciPuOpen = !ciPuOpen;
+  const sec = document.getElementById('ci-purana-udhaar-section');
+  const chev = document.getElementById('ci-pu-chevron');
+  if(sec) sec.style.display = ciPuOpen ? 'block' : 'none';
+  if(chev) chev.style.transform = ciPuOpen ? 'rotate(180deg)' : 'rotate(0)';
+  if(ciPuOpen && ciPuranaUdhaar.length === 0) {
+    ciPuranaUdhaar = [{amount:0, date: nowDateTimeLocal(), note:''}];
+    renderCiPuList();
+  }
+}
+function addCiPuranaEntry() {
+  ciPuranaUdhaar.push({amount:0, date: nowDateTimeLocal(), note:''});
+  renderCiPuList();
+}
+function removeCiPuranaEntry(i) {
+  ciPuranaUdhaar.splice(i,1);
+  renderCiPuList();
+}
+function renderCiPuList() {
+  const el = document.getElementById('ci-pu-list');
+  if(!el) return;
+  el.innerHTML = ciPuranaUdhaar.map((e,i)=>`
+    <div style="background:white;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #FDE68A;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 30px;gap:6px;align-items:start;">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">RAQAM (Rs)</div>
+          <input type="number" placeholder="0" value="${e.amount||''}" min="0"
+            style="width:100%;padding:8px 10px;border:1.5px solid #FDE68A;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#FFFBEB;"
+            oninput="ciPuranaUdhaar[${i}].amount=parseFloat(this.value)||0;updateCiPuTotal()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">DATE & TIME</div>
+          <input type="datetime-local" value="${e.date}"
+            style="width:100%;padding:7px 8px;border:1.5px solid #FDE68A;border-radius:8px;font-size:11px;font-family:inherit;outline:none;background:#FFFBEB;"
+            onchange="ciPuranaUdhaar[${i}].date=this.value">
+        </div>
+        <button onclick="removeCiPuranaEntry(${i})" style="margin-top:18px;width:28px;height:28px;border:none;background:#FEE2E2;border-radius:7px;color:#EF4444;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+      <div style="margin-top:6px;">
+        <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">NOTE (Ikhtiyari)</div>
+        <input type="text" placeholder="e.g. Pichle mahine ka hisab" value="${e.note}"
+          style="width:100%;padding:7px 10px;border:1.5px solid #FDE68A;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#FFFBEB;"
+          oninput="ciPuranaUdhaar[${i}].note=this.value">
+      </div>
+    </div>`).join('');
+  updateCiPuTotal();
+}
+function updateCiPuTotal() {
+  const total = ciPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+  const el = document.getElementById('ci-pu-total');
+  const row = document.getElementById('ci-pu-total-row');
+  if(el) el.textContent = 'Rs '+fmt(total);
+  if(row) row.style.display = total>0 ? 'flex' : 'none';
+}
+
+// ─── HELPER: current datetime for input ───────────────────────────────
+function nowDateTimeLocal() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+
+// ─── PURANA UDHAAR - EDIT HISTORY ────────────────────────────────────
+function toggleEhPuranaUdhaar() {
+  ehPuOpen = !ehPuOpen;
+  const sec = document.getElementById('eh-purana-udhaar-section');
+  const chev = document.getElementById('eh-pu-chevron');
+  if(sec) sec.style.display = ehPuOpen ? 'block' : 'none';
+  if(chev) chev.style.transform = ehPuOpen ? 'rotate(180deg)' : 'rotate(0)';
+  if(ehPuOpen && ehPuranaUdhaar.length === 0) {
+    ehPuranaUdhaar = [{amount:0, date: nowDateTimeLocal(), note:''}];
+    renderEhPuList();
+  }
+}
+function addEhPuranaEntry() {
+  ehPuranaUdhaar.push({amount:0, date: nowDateTimeLocal(), note:''});
+  renderEhPuList();
+}
+function removeEhPuranaEntry(i) {
+  ehPuranaUdhaar.splice(i,1);
+  renderEhPuList();
+}
+function renderEhPuList() {
+  const el = document.getElementById('eh-pu-list');
+  if(!el) return;
+  el.innerHTML = ehPuranaUdhaar.map((e,i)=>`
+    <div style="background:white;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #FDE68A;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 30px;gap:6px;align-items:start;">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">RAQAM (Rs)</div>
+          <input type="number" placeholder="0" value="${e.amount||''}" min="0"
+            style="width:100%;padding:8px 10px;border:1.5px solid #FDE68A;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#FFFBEB;"
+            oninput="ehPuranaUdhaar[${i}].amount=parseFloat(this.value)||0;updateEhPuTotal()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">DATE & TIME</div>
+          <input type="datetime-local" value="${e.date}"
+            style="width:100%;padding:7px 8px;border:1.5px solid #FDE68A;border-radius:8px;font-size:11px;font-family:inherit;outline:none;background:#FFFBEB;"
+            onchange="ehPuranaUdhaar[${i}].date=this.value">
+        </div>
+        <button onclick="removeEhPuranaEntry(${i})" style="margin-top:18px;width:28px;height:28px;border:none;background:#FEE2E2;border-radius:7px;color:#EF4444;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+      <div style="margin-top:6px;">
+        <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px;">NOTE (Ikhtiyari)</div>
+        <input type="text" placeholder="e.g. Pichle mahine ka hisab" value="${e.note}"
+          style="width:100%;padding:7px 10px;border:1.5px solid #FDE68A;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#FFFBEB;"
+          oninput="ehPuranaUdhaar[${i}].note=this.value">
+      </div>
+    </div>`).join('');
+  updateEhPuTotal();
+}
+function updateEhPuTotal() {
+  const total = ehPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+  const el = document.getElementById('eh-pu-total');
+  const row = document.getElementById('eh-pu-total-row');
+  if(el) el.textContent = 'Rs '+fmt(total);
+  if(row) row.style.display = total>0 ? 'flex' : 'none';
+}
+
+// ─── DASHBOARD PERIOD TOGGLE ──────────────────────────────────────────
+function setDashPeriod(period, tabEl) {
+  dashPeriod = period;
+  document.querySelectorAll('#screen-dashboard .tab').forEach(t=>t.classList.remove('active'));
+  if(tabEl) tabEl.classList.add('active');
+  renderDashboard();
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('form-login').style.display = tab==='login'?'block':'none';
+  document.getElementById('form-register').style.display = tab==='register'?'block':'none';
+  document.getElementById('tab-login').className = 'tab '+(tab==='login'?'active':'');
+  document.getElementById('tab-register').className = 'tab '+(tab==='register'?'active':'');
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if(!email||!pass) return toast('Please fill all fields','error');
+  const users = JSON.parse(localStorage.getItem('stockpro_users')||'[]');
+  const user = users.find(u=>u.email===email&&u.password===pass);
+  if(!user) return toast('Invalid credentials','error');
+  currentUser = user;
+  localStorage.setItem('stockpro_session', JSON.stringify(user));
+  initApp();
+}
+
+function doRegister() {
+  const business = document.getElementById('reg-business').value.trim();
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  if(!business||!name||!email||!pass) return toast('Please fill all fields','error');
+  if(pass.length<6) return toast('Password must be at least 6 characters','error');
+  if(pass!==confirm) return toast('Passwords do not match','error');
+  const users = JSON.parse(localStorage.getItem('stockpro_users')||'[]');
+  if(users.find(u=>u.email===email)) return toast('Email already registered','error');
+  const user = {email,name,business,password:pass};
+  users.push(user);
+  localStorage.setItem('stockpro_users', JSON.stringify(users));
+  currentUser = user;
+  localStorage.setItem('stockpro_session', JSON.stringify(user));
+  toast('Account created successfully!','success');
+  initApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  localStorage.removeItem('stockpro_session');
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  cart = [];
+}
+
+// ─── APP INIT ─────────────────────────────────────────────────────────
+function initApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.flexDirection = 'column';
+
+  products = load('products', []);
+  sales = load('sales', []);
+  udhaarData = load('udhaar', []);
+
+  // Set top bar
+  document.getElementById('top-business-name').textContent = currentUser.business;
+  const now = new Date();
+  document.getElementById('top-date').textContent = now.toLocaleDateString('en-PK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Settings panel info
+  document.getElementById('settings-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('settings-name').textContent = currentUser.name;
+  document.getElementById('settings-email').textContent = currentUser.email;
+  document.getElementById('settings-business').textContent = currentUser.business;
+
+  // Load invoice settings
+  const invSet = load('invoiceSettings', {});
+  document.getElementById('inv-biz-name').value = invSet.bizName || currentUser.business;
+  document.getElementById('inv-address').value = invSet.address || '';
+  document.getElementById('inv-phone').value = invSet.phone || '';
+  document.getElementById('inv-footer').value = invSet.footer || '';
+  document.getElementById('inv-signature').value = invSet.signature || '';
+  document.getElementById('inv-facebook').value = invSet.facebook || '';
+  document.getElementById('inv-website').value = invSet.website || '';
+  if(invSet.logo) {
+    document.getElementById('inv-logo-preview').src = invSet.logo;
+    document.getElementById('inv-logo-preview-wrap').style.display='block';
+    document.getElementById('inv-logo-placeholder').style.display='none';
+  }
+
+  updateNotifBadge();
+  updateCartBadge();
+  renderDashboard();
+  renderProducts();
+  renderPOS();
+  renderHistory();
+  renderUdhaar();
+}
+
+function checkSession() {
+  const s = localStorage.getItem('stockpro_session');
+  if(s) { currentUser = JSON.parse(s); initApp(); }
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  const navEl = document.getElementById('nav-'+name);
+  if(navEl) navEl.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='products') renderProducts();
+  if(name==='sales') { renderPOS(); }
+  if(name==='history') renderHistory();
+  if(name==='udhaar') renderUdhaar();
+  if(name==='settings') renderSettingsPage();
+  // Show/hide floating cart button
+  updateCartBadge();
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────
+function renderDashboard() {
+  const now = new Date();
+  const today = now.toDateString();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+
+  let filteredSales;
+  let periodLabel;
+  if(dashPeriod === 'month') {
+    filteredSales = sales.filter(s=>
+      !s.id.startsWith('PAY-') &&
+      new Date(s.date).getMonth()===thisMonth &&
+      new Date(s.date).getFullYear()===thisYear
+    );
+    periodLabel = 'Mahine ki';
+  } else if(dashPeriod === 'alltime') {
+    filteredSales = sales.filter(s=>!s.id.startsWith('PAY-'));
+    periodLabel = 'Kull';
+  } else {
+    filteredSales = sales.filter(s=>
+      new Date(s.date).toDateString()===today && !s.id.startsWith('PAY-')
+    );
+    periodLabel = 'Aaj ki';
+  }
+
+  const totalSales = filteredSales.reduce((a,s)=>a+s.total+((s.puranaUdhaar&&s.puranaUdhaar.length)?s.puranaUdhaar.reduce((x,c)=>x+(c.amount||0),0):0),0);
+
+  // Profit
+  let totalProfit = 0;
+  filteredSales.forEach(s=>{
+    s.items.forEach(item=>{
+      const prod = products.find(p=>p.id===item.id);
+      const cost = item.costPrice !== undefined ? item.costPrice : (prod ? (prod.cost||0) : 0);
+      totalProfit += (item.price - cost) * item.qty;
+    });
+  });
+
+  const pendingUdhaar = udhaarData.filter(u=>u.balance>0).reduce((a,u)=>a+u.balance,0);
+  const totalOrders = filteredSales.length;
+
+  document.getElementById('stat-sales').textContent = 'Rs '+fmt(totalSales);
+  document.getElementById('stat-profit').textContent = 'Rs '+fmt(totalProfit);
+  document.getElementById('stat-udhaar').textContent = 'Rs '+fmt(pendingUdhaar);
+  document.getElementById('stat-orders').textContent = totalOrders;
+
+  // Update labels
+  const lSales = document.getElementById('label-sales');
+  const lProfit = document.getElementById('label-profit');
+  const lOrders = document.getElementById('label-orders');
+  if(lSales) lSales.textContent = periodLabel + ' Sales';
+  if(lProfit) lProfit.textContent = periodLabel + ' Faida';
+  if(lOrders) lOrders.textContent = (dashPeriod==='alltime'?'Kull':'Is '+( dashPeriod==='month'?'Mahine':'Aaj ke')) + ' Orders';
+
+  updateNotifBadge();
+  renderWeeklyChart();
+  renderTopProducts();
+  renderStockSummary();
+
+  // Recent txns
+  const recent = [...sales].reverse().slice(0,5);
+  const el = document.getElementById('recent-txns');
+  if(!recent.length) {
+    el.innerHTML=`<div class="empty-state" style="padding:20px 0;"><i class="fas fa-receipt" style="font-size:32px;"></i><p class="text-sm mt-2">No transactions yet</p></div>`;
+    return;
+  }
+  el.innerHTML = recent.map(s=>{
+    const isPayment = s.id.startsWith('PAY-');
+    const iconBg = isPayment ? '#EFF6FF' : (s.payType==='paid' ? '#D1FAE5' : '#FEF3C7');
+    const iconClass = isPayment ? 'fa-coins' : (s.payType==='paid' ? 'fa-check' : 'fa-clock');
+    const iconColor = isPayment ? 'var(--blue-primary)' : (s.payType==='paid' ? 'var(--success)' : 'var(--warning)');
+    const badgeClass = isPayment ? 'badge-blue' : (s.payType==='paid' ? 'badge-success' : 'badge-warning');
+    const badgeLabel = isPayment ? 'Wapsi' : (s.payType==='paid' ? 'Paid' : 'Udhaar');
+    return `
+    <div class="history-item" style="padding:10px;">
+      <div class="history-icon" style="background:${iconBg};">
+        <i class="fas ${iconClass}" style="color:${iconColor};font-size:16px;"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="font-bold text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.customer||'Walk-in Customer'}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${new Date(s.date).toLocaleString('en-PK')}</div>
+      </div>
+      <div class="text-right">
+        <div class="font-bold text-sm">Rs ${fmt(s.total)}</div>
+        <div class="badge ${badgeClass}" style="font-size:10px;">${badgeLabel}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── WEEKLY CHART ─────────────────────────────────────────────────────
+function renderWeeklyChart() {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const now = new Date();
+  // Last 7 days (today + 6 pehle)
+  const weekData = [];
+  for(let i=6; i>=0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dStr = d.toDateString();
+    const daySales = sales.filter(s=>
+      new Date(s.date).toDateString()===dStr && !s.id.startsWith('PAY-')
+    );
+    const total = daySales.reduce((a,s)=>a+s.total+((s.puranaUdhaar&&s.puranaUdhaar.length)?s.puranaUdhaar.reduce((x,c)=>x+(c.amount||0),0):0),0);
+    weekData.push({ label: days[d.getDay()], total, isToday: i===0 });
+  }
+
+  const maxVal = Math.max(...weekData.map(d=>d.total), 1);
+  const weekTotal = weekData.reduce((a,d)=>a+d.total,0);
+
+  const badge = document.getElementById('weekly-total-badge');
+  if(badge) badge.textContent = 'Rs '+fmt(weekTotal);
+
+  const chartEl = document.getElementById('weekly-chart');
+  const labelEl = document.getElementById('weekly-labels');
+  if(!chartEl || !labelEl) return;
+
+  chartEl.innerHTML = weekData.map(d=>{
+    const pct = Math.max(4, Math.round((d.total/maxVal)*100));
+    const bg = d.isToday ? 'var(--blue-primary)' : '#BFDBFE';
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+      ${d.total>0 ? `<div style="font-size:9px;font-weight:700;color:${d.isToday?'var(--blue-primary)':'var(--text-muted)'};">Rs ${d.total>=1000?(d.total/1000).toFixed(1)+'k':d.total}</div>` : '<div style="font-size:9px;"></div>'}
+      <div style="width:100%;background:${bg};border-radius:6px 6px 3px 3px;height:${pct}%;transition:height .3s;min-height:4px;"></div>
+    </div>`;
+  }).join('');
+
+  labelEl.innerHTML = weekData.map(d=>`
+    <div style="flex:1;text-align:center;font-size:10px;font-weight:${d.isToday?'800':'600'};color:${d.isToday?'var(--blue-primary)':'var(--text-muted)'};">${d.label}</div>
+  `).join('');
+}
+
+// ─── TOP PRODUCTS ─────────────────────────────────────────────────────
+function renderTopProducts() {
+  const el = document.getElementById('top-products-list');
+  if(!el) return;
+
+  // Is mahine ki sales
+  const now = new Date();
+  const monthSales = sales.filter(s=>{
+    const d = new Date(s.date);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && !s.id.startsWith('PAY-');
+  });
+
+  // Product wise qty count
+  const productQty = {};
+  const productRevenue = {};
+  monthSales.forEach(s=>{
+    s.items.forEach(item=>{
+      const key = item.name;
+      productQty[key] = (productQty[key]||0) + item.qty;
+      productRevenue[key] = (productRevenue[key]||0) + (item.price*item.qty);
+    });
+  });
+
+  const sorted = Object.entries(productQty)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5);
+
+  if(!sorted.length) {
+    el.innerHTML=`<div class="empty-state" style="padding:16px 0;"><i class="fas fa-box-open" style="font-size:28px;"></i><p class="text-sm mt-2">Is mahine koi sale nahi</p></div>`;
+    return;
+  }
+
+  const maxQty = sorted[0][1];
+  const colors = ['#1D4ED8','#10B981','#F59E0B','#8B5CF6','#EF4444'];
+
+  el.innerHTML = sorted.map(([name,qty],i)=>{
+    const pct = Math.round((qty/maxQty)*100);
+    const prod = products.find(p=>p.name===name);
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          <div style="width:28px;height:28px;border-radius:8px;background:${colors[i]}20;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+            ${prod&&prod.image?`<img src="${prod.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:`<span>${getEmoji(prod?prod.category:'')}</span>`}
+          </div>
+          <div class="font-bold text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+        </div>
+        <div style="flex-shrink:0;text-align:right;margin-left:8px;">
+          <div style="font-size:11px;font-weight:700;color:${colors[i]};">${qty} sold</div>
+          <div style="font-size:10px;color:var(--text-muted);">Rs ${fmt(productRevenue[name])}</div>
+        </div>
+      </div>
+      <div style="height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${colors[i]};border-radius:4px;transition:width .4s;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── STOCK SUMMARY ────────────────────────────────────────────────────
+function renderStockSummary() {
+  const total = products.length;
+  const low = products.filter(p=>p.stock>0 && p.stock<=p.lowStock).length;
+  const out = products.filter(p=>p.stock<=0).length;
+  const t = document.getElementById('stock-total-products');
+  const l = document.getElementById('stock-low-count');
+  const o = document.getElementById('stock-out-count');
+  if(t) t.textContent = total;
+  if(l) l.textContent = low;
+  if(o) o.textContent = out;
+}
+
+// ─── PRODUCTS ─────────────────────────────────────────────────────────
+function renderProducts() {
+  const q = (document.getElementById('product-search')||{}).value||'';
+  const filtered = products.filter(p=>p.name.toLowerCase().includes(q.toLowerCase()));
+  const el = document.getElementById('products-list');
+  if(!filtered.length) {
+    el.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No products found.<br>Add your first product!</p></div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(p=>`
+    <div class="product-item fade-up">
+      <div class="product-img">
+        ${p.image?`<img src="${p.image}" alt="${p.name}">`:`<span>${getEmoji(p.category)}</span>`}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="font-bold text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+        <div style="font-size:12px;color:var(--text-muted);">${p.category||'General'}</div>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="font-bold text-sm" style="color:var(--blue-primary);">Rs ${fmt(p.price)}</span>
+          <span class="badge ${p.stock<=p.lowStock?'badge-danger':'badge-success'}">${p.stock} in stock</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 items-end">
+        <div class="flex gap-1">
+          <button class="icon-btn icon-btn-blue" onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i></button>
+          <button class="icon-btn icon-btn-red" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="stock-ctrl">
+          <button class="stock-btn stock-btn-minus" onclick="changeStock('${p.id}',-1)"><i class="fas fa-minus" style="font-size:10px;"></i></button>
+          <input type="number" min="0" value="${p.stock}"
+            id="stock-input-${p.id}"
+            style="width:44px;text-align:center;font-size:12px;font-weight:700;border:1px solid var(--border);border-radius:8px;padding:2px 4px;font-family:inherit;background:white;"
+            onchange="setStockDirect('${p.id}',this.value)"
+            onclick="this.select()">
+          <button class="stock-btn stock-btn-plus" onclick="changeStock('${p.id}',1)"><i class="fas fa-plus" style="font-size:10px;"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openAddProduct() {
+  editingProductId = null;
+  document.getElementById('modal-product-title').textContent = 'Add Product';
+  document.getElementById('prod-name').value='';
+  document.getElementById('prod-price').value='';
+  document.getElementById('prod-cost').value='';
+  document.getElementById('prod-stock').value='';
+  document.getElementById('prod-low-stock').value='5';
+  document.getElementById('prod-category').value='';
+  document.getElementById('edit-product-id').value='';
+  currentImageData='';
+  document.getElementById('img-preview-container').style.display='none';
+  document.getElementById('img-placeholder').style.display='block';
+  openModal('modal-product');
+}
+
+function editProduct(id) {
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  editingProductId = id;
+  document.getElementById('modal-product-title').textContent = 'Edit Product';
+  document.getElementById('prod-name').value = p.name;
+  document.getElementById('prod-price').value = p.price;
+  document.getElementById('prod-cost').value = p.cost||'';
+  document.getElementById('prod-stock').value = p.stock;
+  document.getElementById('prod-low-stock').value = p.lowStock||5;
+  document.getElementById('prod-category').value = p.category||'';
+  document.getElementById('edit-product-id').value = id;
+  currentImageData = p.image||'';
+  if(p.image) {
+    document.getElementById('img-preview').src = p.image;
+    document.getElementById('img-preview-container').style.display='block';
+    document.getElementById('img-placeholder').style.display='none';
+  } else {
+    document.getElementById('img-preview-container').style.display='none';
+    document.getElementById('img-placeholder').style.display='block';
+  }
+  openModal('modal-product');
+}
+
+function saveProduct() {
+  const name = document.getElementById('prod-name').value.trim();
+  const price = parseFloat(document.getElementById('prod-price').value)||0;
+  const stock = parseInt(document.getElementById('prod-stock').value)||0;
+  if(!name) return toast('Product name required','error');
+  if(!price) return toast('Sale price required','error');
+
+  const id = editingProductId || 'p_'+Date.now();
+  const product = {
+    id, name,
+    category: document.getElementById('prod-category').value,
+    price, cost: parseFloat(document.getElementById('prod-cost').value)||0,
+    stock, lowStock: parseInt(document.getElementById('prod-low-stock').value)||5,
+    image: currentImageData,
+    createdAt: editingProductId ? (products.find(x=>x.id===editingProductId)||{}).createdAt : new Date().toISOString()
+  };
+
+  if(editingProductId) {
+    products = products.map(p=>p.id===editingProductId?product:p);
+    toast('Product updated!','success');
+  } else {
+    products.push(product);
+    toast('Product added!','success');
+  }
+  save('products', products);
+  closeModal('modal-product');
+  renderProducts(); renderPOS(); updateNotifBadge();
+}
+
+function deleteProduct(id) {
+  if(!confirm('Delete this product?')) return;
+  products = products.filter(p=>p.id!==id);
+  save('products', products);
+  renderProducts();
+  renderPOS();
+  toast('Product deleted','error');
+}
+
+function setStockDirect(id, val) {
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  const newVal = parseInt(val);
+  if(isNaN(newVal) || newVal < 0) {
+    // Reset to current value
+    const inp = document.getElementById('stock-input-'+id);
+    if(inp) inp.value = p.stock;
+    return;
+  }
+  p.stock = newVal;
+  save('products', products);
+  renderDashboard(); updateNotifBadge();
+  // Update badge on card without full re-render
+  const badge = document.querySelector(`[id="stock-input-${id}"]`);
+  const productItem = badge ? badge.closest('.product-item') : null;
+  if(productItem) {
+    const stockBadge = productItem.querySelector('.badge');
+    if(stockBadge) {
+      stockBadge.textContent = newVal+' in stock';
+      stockBadge.className = 'badge '+(newVal<=p.lowStock?'badge-danger':'badge-success');
+    }
+  }
+  toast('Stock update ho gaya: '+newVal, 'success');
+}
+
+function changeStock(id, delta) {
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  p.stock = Math.max(0, p.stock+delta);
+  save('products', products);
+  renderProducts(); renderDashboard(); updateNotifBadge();
+}
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentImageData = e.target.result;
+    document.getElementById('img-preview').src = e.target.result;
+    document.getElementById('img-preview-container').style.display='block';
+    document.getElementById('img-placeholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── POS / SALES ──────────────────────────────────────────────────────
+function renderPOS() {
+  const q = (document.getElementById('pos-search')||{}).value||'';
+  const filtered = products.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())&&p.stock>0);
+  const grid = document.getElementById('pos-grid');
+  if(!filtered.length) {
+    grid.innerHTML=`<div class="col-span-2 empty-state"><i class="fas fa-box-open"></i><p>No products available</p></div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(p=>{
+    const inCart = cart.find(c=>c.id===p.id);
+    return `<div class="pos-product ${inCart?'selected':''}" onclick="addToCart('${p.id}')">
+      <div style="width:48px;height:48px;border-radius:12px;margin:0 auto 8px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;">
+        ${p.image?`<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`:`<span>${getEmoji(p.category)}</span>`}
+      </div>
+      <div class="font-bold text-xs mb-1" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+      <div class="text-sm font-bold" style="color:var(--blue-primary);">Rs ${fmt(p.price)}</div>
+      <div style="font-size:11px;color:var(--text-muted);">${p.stock} left</div>
+      ${inCart?`<div class="badge badge-blue mt-1" style="justify-content:center;">${inCart.qty} in cart</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function addToCart(id) {
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  const existing = cart.find(c=>c.id===id);
+  if(existing) {
+    if(existing.qty>=p.stock) return toast('Stock limit reached','error');
+    existing.qty++;
+  } else {
+    cart.push({id:p.id,name:p.name,price:p.price,qty:1,image:p.image,category:p.category});
+  }
+  renderCart();
+  renderPOS();
+}
+
+function renderCart() {
+  updateCartBadge();
+  const cartItemsEl = document.getElementById('cart-items');
+  const cartFooter = document.getElementById('cart-footer');
+  if(!cart.length) {
+    cartItemsEl.innerHTML=`<div class="empty-state" style="padding:24px 0;"><i class="fas fa-shopping-cart" style="font-size:36px;"></i><p class="text-sm mt-2">Cart is empty.<br>Select products from POS.</p></div>`;
+    if(cartFooter) cartFooter.style.display='none';
+    return;
+  }
+  if(cartFooter) cartFooter.style.display='block';
+  const total = cart.reduce((a,c)=>a+c.price*c.qty,0);
+  document.getElementById('cart-total').textContent = 'Rs '+fmt(total);
+  cartItemsEl.innerHTML = cart.map(c=>`
+    <div class="cart-item">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;">
+          ${c.image?`<img src="${c.image}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`:`<span>${getEmoji(c.category)}</span>`}
+        </div>
+        <div style="min-width:0;">
+          <div class="font-bold text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);">Rs ${fmt(c.price)} × ${c.qty} = <strong style="color:var(--blue-primary);">Rs ${fmt(c.price*c.qty)}</strong></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <button class="stock-btn stock-btn-minus" onclick="changeCartQty('${c.id||c.manualId}',-1,${!c.id})"><i class="fas fa-minus" style="font-size:10px;"></i></button>
+        <input type="number" min="1" value="${c.qty}"
+          style="width:44px;height:30px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;outline:none;padding:0 4px;"
+          onchange="setCartQtyDirect('${c.id||c.manualId}',this.value,${!c.id})"
+          onclick="this.select()">
+        <button class="stock-btn stock-btn-plus" onclick="changeCartQty('${c.id||c.manualId}',1,${!c.id})"><i class="fas fa-plus" style="font-size:10px;"></i></button>
+        <button class="icon-btn icon-btn-red" onclick="removeFromCart('${c.id||c.manualId}',${!c.id})"><i class="fas fa-trash" style="font-size:11px;"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((a,c)=>a+c.qty,0);
+  const badge = document.getElementById('cart-badge');
+  if(badge) {
+    if(total>0) { badge.style.display='flex'; badge.textContent=total>9?'9+':total; }
+    else { badge.style.display='none'; }
+  }
+  // Floating cart button (POS screen only)
+  const floatBtn = document.getElementById('pos-float-cart');
+  const floatBadge = document.getElementById('pos-float-badge');
+  const posScreen = document.getElementById('screen-sales');
+  if(floatBtn) {
+    if(total>0 && posScreen && posScreen.classList.contains('active')) {
+      floatBtn.style.display='block';
+      if(floatBadge) floatBadge.textContent = total>9?'9+':total;
+    } else {
+      floatBtn.style.display='none';
+    }
+  }
+}
+
+function openCartModal() {
+  cartPuranaUdhaar = [];
+  cartPuOpen = false;
+  const sec = document.getElementById('cart-purana-udhaar-section');
+  const chev = document.getElementById('cart-pu-chevron');
+  if(sec) sec.style.display = 'none';
+  if(chev) chev.style.transform = 'rotate(0)';
+  const row = document.getElementById('cart-pu-total-row');
+  if(row) row.style.display = 'none';
+  const list = document.getElementById('cart-pu-list');
+  if(list) list.innerHTML = '';
+  renderCart();
+  openModal('modal-cart');
+}
+
+function updateNotifBadge() {
+  const low = products.filter(p=>p.stock<=p.lowStock);
+  const badge = document.getElementById('notif-badge');
+  if(!badge) return;
+  if(low.length>0) { badge.style.display='flex'; badge.textContent=low.length>9?'9+':low.length; }
+  else { badge.style.display='none'; }
+}
+
+function openLowStockNotif() {
+  const low = products.filter(p=>p.stock<=p.lowStock);
+  const el = document.getElementById('lowstock-notif-list');
+  if(!low.length) {
+    el.innerHTML=`<div class="empty-state" style="padding:20px 0;"><i class="fas fa-check-circle" style="color:var(--success);font-size:40px;"></i><p class="font-bold mt-2" style="color:var(--success);">All stocks are fine!</p><p class="text-sm">No low stock alerts right now.</p></div>`;
+  } else {
+    el.innerHTML = low.map(p=>`
+      <div class="product-item" style="margin-bottom:10px;">
+        <div class="product-img">
+          ${p.image?`<img src="${p.image}" alt="${p.name}">`:`<span>${getEmoji(p.category)}</span>`}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="font-bold text-sm">${p.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${p.category||'General'}</div>
+          <div class="badge badge-danger mt-1">Only ${p.stock} left · Threshold: ${p.lowStock}</div>
+        </div>
+        <button onclick="closeModal('modal-lowstock');switchScreen('products');" class="icon-btn icon-btn-blue" title="Go to Product">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>`).join('');
+  }
+  openModal('modal-lowstock');
+}
+
+function setCartQtyDirect(id, val, isManual) {
+  const item = isManual ? cart.find(c=>c.manualId===id) : cart.find(c=>c.id===id);
+  if(!item) return;
+  let qty = parseInt(val)||1;
+  if(qty < 1) qty = 1;
+  if(!isManual) {
+    const p = products.find(x=>x.id===id);
+    if(p && qty > p.stock) { qty = p.stock; toast('Stock limit reached','error'); }
+  }
+  item.qty = qty;
+  renderCart(); renderPOS();
+}
+
+function changeCartQty(id, delta, isManual) {
+  const item = isManual ? cart.find(c=>c.manualId===id) : cart.find(c=>c.id===id);
+  if(!item) return;
+  item.qty = Math.max(1, item.qty+delta);
+  if(!isManual) {
+    const p = products.find(x=>x.id===id);
+    if(p && item.qty>p.stock) { item.qty=p.stock; toast('Stock limit reached','error'); }
+  }
+  renderCart(); renderPOS();
+}
+
+function removeFromCart(id, isManual) {
+  if(isManual) {
+    cart = cart.filter(c=>c.manualId!==id);
+  } else {
+    cart = cart.filter(c=>c.id!==id);
+  }
+  renderCart(); renderPOS();
+}
+
+function clearCart() {
+  cart=[]; payType='paid';
+  renderCart(); renderPOS();
+  resetPayBtns();
+  updateCartBadge();
+}
+
+function setPayType(type) {
+  payType = type;
+  const paidBtn = document.getElementById('btn-paid');
+  const udhaarBtn = document.getElementById('btn-udhaar');
+  const requiredMark = document.getElementById('cust-name-required');
+  if(type==='paid') {
+    paidBtn.style.background='var(--success)'; paidBtn.style.color='white';
+    udhaarBtn.style.background='white'; udhaarBtn.style.color='var(--warning)';
+    if(requiredMark) requiredMark.style.display='none';
+  } else {
+    udhaarBtn.style.background='var(--warning)'; udhaarBtn.style.color='white';
+    paidBtn.style.background='white'; paidBtn.style.color='var(--success)';
+    if(requiredMark) requiredMark.style.display='inline';
+  }
+}
+
+function resetPayBtns() {
+  document.getElementById('btn-paid').style.background='white';
+  document.getElementById('btn-paid').style.color='var(--success)';
+  document.getElementById('btn-udhaar').style.background='white';
+  document.getElementById('btn-udhaar').style.color='var(--warning)';
+  const requiredMark = document.getElementById('cust-name-required');
+  if(requiredMark) requiredMark.style.display='none';
+}
+
+function processSale() {
+  if(!cart.length) return toast('Cart is empty','error');
+  const customerName = (document.getElementById('customer-name').value||'').trim();
+  const customerPhone = (document.getElementById('customer-phone').value||'').trim();
+  const customerAddress = (document.getElementById('customer-address').value||'').trim();
+  let customer = customerName || 'Walk-in Customer';
+  if(payType==='udhaar') {
+    if(!customerName) return toast('Udhaar ke liye customer naam zaroori hai','error');
+  }
+  const total = cart.reduce((a,c)=>a+c.price*c.qty,0);
+  const saleId = 'INV-'+Date.now().toString().slice(-6);
+  const validPuranaUdhaar = cartPuranaUdhaar.filter(e=>e.amount>0);
+  const sale = {
+    id: saleId, date: new Date().toISOString(),
+    items: [...cart], total, payType, customer,
+    customerPhone, customerAddress,
+    puranaUdhaar: validPuranaUdhaar
+  };
+  sales.push(sale);
+  save('sales', sales);
+
+  // Deduct stock (sirf real products ke liye — manual items skip)
+  cart.forEach(c=>{
+    if(!c.id) return;
+    const p=products.find(x=>x.id===c.id);
+    if(p) p.stock=Math.max(0,p.stock-c.qty);
+  });
+  save('products', products);
+
+  // Update Udhaar (naya + purana dono balance mein add karo)
+  const _puranaTotal = validPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+  const _needsUdhaar = payType==='udhaar' || (_puranaTotal>0 && customer!=='Walk-in Customer');
+  if(_needsUdhaar) {
+    const existing = udhaarData.find(u=>u.name.toLowerCase()===customer.toLowerCase());
+    // Agar payType=paid hai toh sirf puranaUdhaar balance ko DEDUCT karo (customer ne pay kar diya)
+    // Agar payType=udhaar hai toh naya balance add karo + puranaUdhaar bhi add karo
+    if(payType==='paid') {
+      // Customer ne cash pay kiya — puranaUdhaar clear ho gaya
+      if(existing && _puranaTotal > 0) {
+        existing.balance = Math.max(0, existing.balance - _puranaTotal);
+        existing.phone = customerPhone || existing.phone || '';
+        existing.address = customerAddress || existing.address || '';
+        if(existing.balance <= 0 && !(existing.transactions||[]).length) {
+          udhaarData = udhaarData.filter(x=>x.id !== existing.id);
+        }
+      }
+      // Agar customer existing nahi tha toh koi entry add nahi karni
+    } else {
+      // payType=udhaar: naya + purana dono add karo
+      const _newBal = total + _puranaTotal;
+      if(existing) {
+        // ── FIX: Agar pehle balance zero tha toh yeh naya cycle hai — fresh start ──
+        if(existing.balance === 0) {
+          existing.transactions = [];  // Ensure clean slate for new cycle
+        }
+        existing.balance += _newBal;
+        existing.phone = customerPhone || existing.phone || '';
+        existing.address = customerAddress || existing.address || '';
+        existing.transactions = existing.transactions||[];
+        existing.transactions.push(saleId);
+      } else if(_newBal>0) {
+        udhaarData.push({id:'u_'+Date.now(),name:customer,phone:customerPhone,address:customerAddress,balance:_newBal,transactions:[saleId]});
+      }
+    }
+    save('udhaar', udhaarData);
+  }
+
+  showInvoice(sale);
+  cart=[]; payType='paid';
+  document.getElementById('customer-name').value='';
+  document.getElementById('customer-phone').value='';
+  document.getElementById('customer-address').value='';
+  renderCart(); renderPOS(); resetPayBtns();
+  updateCartBadge(); updateNotifBadge();
+  closeModal('modal-cart');
+  renderDashboard(); renderUdhaar(); renderHistory();
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────
+function changePassword() {
+  const oldPass = document.getElementById('set-old-pass').value;
+  const newPass = document.getElementById('set-new-pass').value;
+  const confirm = document.getElementById('set-confirm-pass').value;
+  if(!oldPass||!newPass||!confirm) return toast('Please fill all password fields','error');
+  if(oldPass !== currentUser.password) return toast('Current password is incorrect','error');
+  if(newPass.length<6) return toast('New password must be at least 6 characters','error');
+  if(newPass !== confirm) return toast('Passwords do not match','error');
+  // Update in users list
+  const users = JSON.parse(localStorage.getItem('stockpro_users')||'[]');
+  const idx = users.findIndex(u=>u.email===currentUser.email);
+  if(idx>-1) { users[idx].password = newPass; localStorage.setItem('stockpro_users', JSON.stringify(users)); }
+  currentUser.password = newPass;
+  localStorage.setItem('stockpro_session', JSON.stringify(currentUser));
+  document.getElementById('set-old-pass').value='';
+  document.getElementById('set-new-pass').value='';
+  document.getElementById('set-confirm-pass').value='';
+  toast('Password updated successfully!','success');
+}
+
+function saveInvoiceSettings() {
+  const invSet = {
+    bizName: document.getElementById('inv-biz-name').value.trim() || currentUser.business,
+    address: document.getElementById('inv-address').value.trim(),
+    phone: document.getElementById('inv-phone').value.trim(),
+    footer: document.getElementById('inv-footer').value.trim(),
+    signature: document.getElementById('inv-signature').value.trim(),
+    facebook: document.getElementById('inv-facebook').value.trim(),
+    website: document.getElementById('inv-website').value.trim(),
+    logo: document.getElementById('inv-logo-preview').src.includes('data:') ? document.getElementById('inv-logo-preview').src : ''
+  };
+  save('invoiceSettings', invSet);
+  toast('Invoice settings saved!','success');
+}
+
+function previewInvLogo(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('inv-logo-preview').src = e.target.result;
+    document.getElementById('inv-logo-preview-wrap').style.display='block';
+    document.getElementById('inv-logo-placeholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── SETTINGS PAGE ────────────────────────────────────────────────────
+function renderSettingsPage() {
+  if(!currentUser) return;
+  document.getElementById('settings-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('settings-name').textContent = currentUser.name;
+  document.getElementById('settings-email').textContent = currentUser.email;
+  document.getElementById('settings-business').textContent = currentUser.business;
+  const invSet = load('invoiceSettings', {});
+  document.getElementById('inv-biz-name').value = invSet.bizName || currentUser.business;
+  document.getElementById('inv-address').value = invSet.address || '';
+  document.getElementById('inv-phone').value = invSet.phone || '';
+  document.getElementById('inv-footer').value = invSet.footer || '';
+  document.getElementById('inv-signature').value = invSet.signature || '';
+  document.getElementById('inv-facebook').value = invSet.facebook || '';
+  document.getElementById('inv-website').value = invSet.website || '';
+  if(invSet.logo) {
+    document.getElementById('inv-logo-preview').src = invSet.logo;
+    document.getElementById('inv-logo-preview-wrap').style.display='block';
+    document.getElementById('inv-logo-placeholder').style.display='none';
+  }
+}
+
+// ─── INVOICE ──────────────────────────────────────────────────────────
+function showInvoice(sale) {
+  const invSet = load('invoiceSettings', {});
+  const biz = invSet.bizName || currentUser.business;
+  const addr = invSet.address || '';
+  const phone = invSet.phone || '';
+  const logo = invSet.logo || '';
+  const footer = invSet.footer || 'Shukriya! Dobara aana 🙏';
+  const signature = invSet.signature || '';
+  const facebook = invSet.facebook || '';
+  const website = invSet.website || '';
+
+  const isPayRecord = sale.id.startsWith('PAY-');
+  const isPaid = sale.payType === 'paid';
+
+  // ── PAY- record ke liye udhaar customer dhundo ──
+  let udhaarCustomer = null;
+  let allOriginalItems = [];
+  let totalUdhaarGiven = 0;
+  let totalPaidSoFar = 0;
+
+  if(isPayRecord && sale.udhaarCustomerId) {
+    udhaarCustomer = udhaarData.find(u=>u.id===sale.udhaarCustomerId);
+    if(udhaarCustomer) {
+      // ── FIX: settledTransactionIds use karo (current transactions se nahi, jo us waqt the) ──
+      const txIds = sale.settledTransactionIds || (udhaarCustomer.transactions||[]);
+      const txList = txIds.map(txId=>sales.find(x=>x.id===txId)).filter(Boolean);
+      let puranaUdhaarGrandTotal = 0;
+      txList.forEach(tx=>{
+        tx.items.forEach(item=>{ allOriginalItems.push({...item, fromInvoice: tx.id, txDate: tx.date}); });
+        totalUdhaarGiven += tx.total;
+        // ── FIX: Purana udhaar bhi collect karo ──
+        if(tx.puranaUdhaar && tx.puranaUdhaar.length) {
+          puranaUdhaarGrandTotal += tx.puranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+        }
+      });
+      totalUdhaarGiven += puranaUdhaarGrandTotal;
+      totalPaidSoFar = totalUdhaarGiven - udhaarCustomer.balance;
+    }
+  }
+
+  // ── Customer name clean karo ──
+  const cleanCustomer = isPayRecord
+    ? (udhaarCustomer ? udhaarCustomer.name : (sale.customer||'').replace(' (Udhaar Settled)','').replace(' (Partial Payment)',''))
+    : (sale.customer || 'Walk-in Customer');
+
+  const statusLabel = isPayRecord ? 'PAYMENT RECEIVED' : (isPaid ? 'PAID' : 'UDHAAR');
+  const statusColor = isPayRecord ? '#16A34A' : (isPaid ? '#16A34A' : '#D97706');
+  const statusBg = isPayRecord ? '#DCFCE7' : (isPaid ? '#DCFCE7' : '#FEF3C7');
+
+  // ── Items section ──
+  // PAY- record mein original products dikhao
+  const itemsToShow = (isPayRecord && allOriginalItems.length) ? allOriginalItems : sale.items;
+
+  const itemsHtml = itemsToShow.map(i=>`
+    <div style="display:grid;grid-template-columns:1fr 40px 80px;gap:6px;align-items:center;padding:6px 0;border-bottom:1px dashed #F1F5F9;">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#0F172A;">${i.name}</div>
+        <div style="font-size:10px;color:#94A3B8;">@ Rs ${fmt(i.price)}${i.fromInvoice ? ` · ${i.fromInvoice}` : ''}</div>
+      </div>
+      <div style="text-align:center;font-size:13px;font-weight:700;color:#0F172A;">${i.qty}</div>
+      <div style="text-align:right;font-size:13px;font-weight:700;color:#0F172A;">Rs ${fmt(i.price*i.qty)}</div>
+    </div>`).join('');
+
+
+
+  const html = `
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;max-width:340px;margin:0 auto;">
+      <!-- Shop Header -->
+      <div style="text-align:center;padding:0 0 16px;border-bottom:1px dashed #CBD5E1;">
+        ${logo ? `<img src="${logo}" style="height:52px;object-fit:contain;margin:0 auto 8px;display:block;border-radius:6px;">` : ''}
+        <div style="font-size:20px;font-weight:800;color:#0F172A;font-family:'Space Grotesk',sans-serif;letter-spacing:-.3px;">${biz}</div>
+        ${addr || phone ? `<div style="font-size:12px;color:#64748B;margin-top:3px;">${[addr,phone].filter(Boolean).join('  •  ')}</div>` : ''}
+        ${facebook ? `<div style="font-size:11px;color:#1877F2;margin-top:3px;"><i class="fab fa-facebook"></i> ${facebook}</div>` : ''}
+        ${website ? `<div style="font-size:11px;color:#1D4ED8;margin-top:2px;"><i class="fas fa-globe"></i> ${website}</div>` : ''}
+      </div>
+
+      <!-- Invoice Info Row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #CBD5E1;">
+        <div>
+          <div style="font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:.8px;">INVOICE NO</div>
+          <div style="font-size:14px;font-weight:800;color:#1D4ED8;">${sale.id}</div>
+        </div>
+        <div style="text-align:center;">
+          <span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;background:${statusBg};color:${statusColor};letter-spacing:.5px;">${statusLabel}</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:.8px;">DATE</div>
+          <div style="font-size:13px;font-weight:700;color:#0F172A;">${new Date(sale.date).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'})}</div>
+        </div>
+      </div>
+
+      <!-- Customer -->
+      ${cleanCustomer && cleanCustomer !== 'Walk-in Customer' ? `
+      <div style="padding:10px 0;border-bottom:1px dashed #CBD5E1;">
+        <div style="font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:.8px;margin-bottom:3px;">CUSTOMER</div>
+        <div style="font-size:14px;font-weight:700;color:#0F172A;">${cleanCustomer}</div>
+        ${(udhaarCustomer?udhaarCustomer.phone:sale.customerPhone) ? `<div style="font-size:12px;color:#64748B;">${udhaarCustomer?udhaarCustomer.phone:sale.customerPhone}</div>` : ''}
+        ${sale.customerAddress ? `<div style="font-size:12px;color:#64748B;">${sale.customerAddress}</div>` : ''}
+      </div>` : ''}
+
+      <!-- Items Table -->
+      <div style="padding:10px 0;border-bottom:1px solid #0F172A;">
+        <div style="font-size:10px;color:#94A3B8;font-weight:700;letter-spacing:.8px;margin-bottom:6px;">${isPayRecord?'UDHAAR PRODUCTS':'ITEMS'}</div>
+        <div style="display:grid;grid-template-columns:1fr 40px 80px;gap:6px;font-size:9px;color:#94A3B8;font-weight:700;letter-spacing:.8px;padding-bottom:6px;border-bottom:1px solid #E2E8F0;margin-bottom:4px;">
+          <span>ITEM</span><span style="text-align:center;">QTY</span><span style="text-align:right;">AMOUNT</span>
+        </div>
+        ${itemsHtml}
+        ${/* Normal invoice - puranaUdhaar */ (sale.puranaUdhaar && sale.puranaUdhaar.length > 0) ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px;border-top:1px dashed #FDE68A;margin-top:6px;">
+          <div style="font-size:12px;font-weight:700;color:#92400E;"><i class="fas fa-clock-rotate-left" style="margin-right:5px;color:#D97706;font-size:11px;"></i>Purana Baqi Kull:</div>
+          <div style="font-size:13px;font-weight:800;color:#D97706;">Rs ${fmt(sale.puranaUdhaar.reduce((a,c)=>a+(c.amount||0),0))}</div>
+        </div>` : ''}
+        ${/* PAY record - settledPuranaUdhaar */ (isPayRecord && sale.settledPuranaUdhaar && sale.settledPuranaUdhaar.length > 0) ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px;border-top:1px dashed #BBF7D0;margin-top:6px;">
+          <div style="font-size:12px;font-weight:700;color:#065F46;"><i class="fas fa-clock-rotate-left" style="margin-right:5px;color:#10B981;font-size:11px;"></i>Purana Udhaar Clear:</div>
+          <div style="font-size:13px;font-weight:800;color:#10B981;">✓ Rs ${fmt(sale.settledPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0))}</div>
+        </div>` : ''}
+        ${/* PAY record - wapsiPuranaUdhaar */ (isPayRecord && sale.wapsiPuranaUdhaar && sale.wapsiPuranaUdhaar.length > 0) ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px;border-top:1px dashed #FDE68A;margin-top:${(isPayRecord && sale.settledPuranaUdhaar && sale.settledPuranaUdhaar.length > 0)?'2':'6'}px;">
+          <div style="font-size:12px;font-weight:700;color:#92400E;"><i class="fas fa-clock-rotate-left" style="margin-right:5px;color:#D97706;font-size:11px;"></i>Purana Baqi Kull:</div>
+          <div style="font-size:13px;font-weight:800;color:#D97706;">Rs ${fmt(sale.wapsiPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0))}</div>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;margin-top:4px;border-top:${
+          (sale.puranaUdhaar && sale.puranaUdhaar.length > 0) ||
+          (isPayRecord && sale.settledPuranaUdhaar && sale.settledPuranaUdhaar.length > 0) ||
+          (isPayRecord && sale.wapsiPuranaUdhaar && sale.wapsiPuranaUdhaar.length > 0)
+            ? '1.5px solid #F59E0B' : '1px solid #0F172A'};">
+          <div style="font-size:13px;font-weight:700;color:#64748B;letter-spacing:.5px;">KULL UDHAAR</div>
+          <div style="font-size:20px;font-weight:800;color:#1D4ED8;font-family:'Space Grotesk',sans-serif;">Rs ${fmt(
+            isPayRecord
+              ? totalUdhaarGiven  /* totalUdhaarGiven mein naya + puranaUdhaar dono already hain */
+              : (sale.total + ((sale.puranaUdhaar && sale.puranaUdhaar.length > 0) ? sale.puranaUdhaar.reduce((a,c)=>a+(c.amount||0),0) : 0))
+          )}</div>
+        </div>
+      </div>
+
+      <!-- Payment received (PAY- record) or udhaar summary -->
+      ${isPayRecord && udhaarCustomer ? `
+      <div style="padding:10px 0;border-bottom:1px dashed #CBD5E1;">
+        ${sale.balanceBeforePayment ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;">
+          <span style="font-size:12px;font-weight:600;color:#374151;"><i class="fas fa-file-invoice" style="color:#D97706;margin-right:5px;font-size:11px;"></i>Pehle Baqi Tha:</span>
+          <span style="font-size:14px;font-weight:800;color:#D97706;">Rs ${fmt(sale.balanceBeforePayment)}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;">
+          <span style="font-size:12px;font-weight:600;color:#374151;"><i class="fas fa-hand-holding-usd" style="color:#10B981;margin-right:5px;font-size:11px;"></i>Is Baar Diya:</span>
+          <span style="font-size:14px;font-weight:800;color:#10B981;">Rs ${fmt(sale.total)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;">
+          <span style="font-size:12px;font-weight:600;color:#374151;"><i class="fas fa-hourglass-half" style="color:${udhaarCustomer.balance>0?'#DC2626':'#10B981'};margin-right:5px;font-size:11px;"></i>Ab Baqi:</span>
+          <span style="font-size:14px;font-weight:800;color:${udhaarCustomer.balance>0?'#DC2626':'#10B981'};">${udhaarCustomer.balance>0?'Rs '+fmt(udhaarCustomer.balance):'✓ Clear!'}</span>
+        </div>
+      </div>` : ''}
+
+
+      <!-- Signature + Footer -->
+      <div style="padding:14px 0 0;">
+        ${signature ? `
+        <div style="display:flex;justify-content:flex-end;padding-bottom:10px;border-bottom:1px dashed #CBD5E1;margin-bottom:10px;">
+          <div style="text-align:center;">
+            <div style="font-family:'Dancing Script',cursive;font-size:26px;color:#1D4ED8;line-height:1.1;">${signature}</div>
+            <div style="width:100%;height:1px;background:#CBD5E1;margin:4px 0;"></div>
+            <div style="font-size:9px;color:#94A3B8;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">Authorized Signature</div>
+          </div>
+        </div>` : ''}
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#64748B;">${footer}</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:10px;padding-top:8px;border-top:1px dashed #E2E8F0;font-style:italic;">Software Design by <strong style="color:#1D4ED8;">Mudassar Latif Ramay</strong></div>
+        </div>
+      </div>
+    </div>`;
+
+  window._currentInvoiceSale = sale;
+  document.getElementById('invoice-preview').innerHTML = html;
+
+  const waBtn = document.getElementById('wa-send-btn');
+  if(waBtn) {
+    const hasPhone = (udhaarCustomer?udhaarCustomer.phone:sale.customerPhone) && (udhaarCustomer?udhaarCustomer.phone:sale.customerPhone).trim();
+    waBtn.style.display = 'flex';
+    waBtn.title = hasPhone ? 'WhatsApp par invoice bhejein' : 'Customer ka phone number nahi hai';
+    waBtn.style.opacity = hasPhone ? '1' : '0.4';
+  }
+
+  openModal('modal-invoice');
+}
+function sendWhatsApp() {
+  const sale = window._currentInvoiceSale;
+  if(!sale) return;
+  const invSet = load('invoiceSettings', {});
+  const biz = invSet.bizName || currentUser.business;
+  const addr = invSet.address || '';
+  const footer = invSet.footer || 'Shukriya! Dobara aana 🙏';
+  const isPaid = sale.payType === 'paid';
+
+  let msg = `🧾 *${biz}*`;
+  if(addr) msg += `\n📍 ${addr}`;
+  msg += `\n${'─'.repeat(22)}`;
+  msg += `\n*Invoice:* ${sale.id}`;
+  msg += `\n*Date:* ${new Date(sale.date).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'})}`;
+  msg += `\n*Status:* ${isPaid ? '✅ PAID' : '⏳ UDHAAR'}`;
+  if(sale.customer && sale.customer !== 'Walk-in Customer') msg += `\n*Customer:* ${sale.customer}`;
+  msg += `\n${'─'.repeat(22)}`;
+  sale.items.forEach(i => { msg += `\n• ${i.name} × ${i.qty}  →  Rs ${fmt(i.price*i.qty)}`; });
+  msg += `\n${'─'.repeat(22)}`;
+  msg += `\n*💰 Total: Rs ${fmt(sale.total)}*`;
+  msg += `\n\n${footer}`;
+
+  let phone = (sale.customerPhone || '').replace(/\D/g,'');
+  // Convert Pakistani number: 03xx → 923xx
+  if(phone.startsWith('0')) phone = '92' + phone.slice(1);
+  if(!phone) { toast('Phone number nahi hai customer ka','error'); return; }
+
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+function printInvoice() {
+  const invSet = load('invoiceSettings', {});
+  const biz = invSet.bizName || currentUser.business;
+  const logo = invSet.logo || '';
+  const invoiceHTML = document.getElementById('invoice-preview').innerHTML;
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Invoice - ${biz}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body{font-family:'Plus Jakarta Sans',sans-serif;padding:16px;max-width:400px;margin:0 auto;background:white;}
+    @media print{body{padding:0;} @page{margin:8mm;}}
+    img{max-width:100%;display:block;}
+  </style></head><body>${invoiceHTML}</body></html>`);
+  w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); }, 800);
+}
+
+function downloadInvoice() {
+  const sale = window._currentInvoiceSale;
+  if(!sale) return toast('Invoice data nahi mila','error');
+
+  const invSet = load('invoiceSettings', {});
+  const biz = invSet.bizName || currentUser.business;
+  const addr = invSet.address || '';
+  const phone = invSet.phone || '';
+  const logo = invSet.logo || '';
+  const footer = invSet.footer || 'Shukriya! Dobara aana 🙏';
+  const signature = invSet.signature || '';
+  const isPaid = sale.payType === 'paid';
+  const fileName = `Invoice-${sale.id}.pdf`;
+
+  toast('PDF ban rahi hai...', 'success');
+
+  // Load jsPDF dynamically
+  if(!window.jspdf) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload = () => _generatePDF(sale, biz, addr, phone, logo, footer, isPaid, fileName, signature);
+    document.head.appendChild(s);
+  } else {
+    _generatePDF(sale, biz, addr, phone, logo, footer, isPaid, fileName, signature);
+  }
+}
+
+function _generatePDF(sale, biz, addr, phone, logo, footer, isPaid, fileName, signature) {
+  const invSet2 = load('invoiceSettings', {});
+  const pdfFacebook = invSet2.facebook || '';
+  const pdfWebsite = invSet2.website || '';
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a5', orientation: 'portrait' });
+  const W = doc.internal.pageSize.getWidth();
+
+  let y = 10;
+  const lm = 14; // left margin
+  const rm = W - 14; // right margin
+  const cw = W - 28; // content width
+
+  // ── Helper functions ──
+  const line = (y1) => { doc.setDrawColor(203,213,225); doc.setLineWidth(0.3); doc.line(lm, y1, rm, y1); };
+  const dashedLine = (y1) => {
+    doc.setDrawColor(203,213,225); doc.setLineWidth(0.2);
+    doc.setLineDashPattern([1.5,1.5], 0); doc.line(lm, y1, rm, y1); doc.setLineDashPattern([], 0);
+  };
+
+  // ── LOGO ──
+  if(logo && logo.startsWith('data:image')) {
+    try {
+      const imgType = logo.includes('data:image/png') ? 'PNG' : 'JPEG';
+      const imgW = 22, imgH = 22;
+      doc.addImage(logo, imgType, W/2 - imgW/2, y, imgW, imgH, '', 'FAST');
+      y += imgH + 4;
+    } catch(e) { /* skip logo if error */ }
+  }
+
+  // ── BUSINESS NAME ──
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.setTextColor(15,23,42);
+  doc.text(biz, W/2, y, { align:'center' });
+  y += 6;
+
+  if(addr || phone) {
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100,116,139);
+    const sub = [addr, phone].filter(Boolean).join('  •  ');
+    doc.text(sub, W/2, y, { align:'center' });
+    y += 5;
+  }
+  if(pdfFacebook) {
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(24,119,242);
+    doc.text('fb: ' + pdfFacebook, W/2, y, { align:'center' });
+    y += 4;
+  }
+  if(pdfWebsite) {
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(29,78,216);
+    doc.text('web: ' + pdfWebsite, W/2, y, { align:'center' });
+    y += 4;
+  }
+
+  dashedLine(y); y += 5;
+
+  // ── INVOICE META ROW ──
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7);
+  doc.setTextColor(148,163,184);
+  doc.text('INVOICE NO', lm, y);
+  doc.text('DATE', rm, y, { align:'right' });
+  y += 4;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(29,78,216);
+  doc.text(sale.id, lm, y);
+
+  doc.setTextColor(15,23,42);
+  doc.setFontSize(9);
+  const dateStr = new Date(sale.date).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'});
+  doc.text(dateStr, rm, y, { align:'right' });
+  y += 3;
+
+  // STATUS badge
+  const statusLabel = isPaid ? 'PAID' : 'UDHAAR';
+  const statusBgR = isPaid ? [220,252,231] : [254,243,199];
+  const statusTxtR = isPaid ? [22,163,74] : [217,119,6];
+  const badgeW = 22, badgeH = 6;
+  const bx = W/2 - badgeW/2;
+  doc.setFillColor(...statusBgR);
+  doc.roundedRect(bx, y-1, badgeW, badgeH, 3, 3, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...statusTxtR);
+  doc.text(statusLabel, W/2, y+3.5, { align:'center' });
+  y += badgeH + 4;
+
+  dashedLine(y); y += 5;
+
+  // ── CUSTOMER ──
+  if(sale.customer && sale.customer !== 'Walk-in Customer') {
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(7);
+    doc.setTextColor(148,163,184);
+    doc.text('CUSTOMER', lm, y);
+    y += 4;
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15,23,42);
+    doc.text(sale.customer, lm, y);
+    y += 5;
+
+    if(sale.customerPhone) {
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100,116,139);
+      doc.text(sale.customerPhone, lm, y);
+      y += 4;
+    }
+    if(sale.customerAddress) {
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100,116,139);
+      doc.text(sale.customerAddress, lm, y);
+      y += 4;
+    }
+    dashedLine(y); y += 5;
+  }
+
+  // ── ITEMS HEADER ──
+  const colItem = lm;
+  const colQty = lm + (cw * 0.58);
+  const colAmt = rm;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7);
+  doc.setTextColor(148,163,184);
+  doc.text('ITEM', colItem, y);
+  doc.text('QTY', colQty, y, { align:'center' });
+  doc.text('AMOUNT', colAmt, y, { align:'right' });
+  y += 3;
+  line(y); y += 4;
+
+  // ── ITEMS ──
+  sale.items.forEach(item => {
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15,23,42);
+    // Item name (truncate if too long)
+    const maxNameW = cw * 0.52;
+    const nameStr = String(item.name);
+    doc.text(nameStr, colItem, y, { maxWidth: maxNameW });
+    doc.text(String(item.qty), colQty, y, { align:'center' });
+    doc.text(`Rs ${fmt(item.price * item.qty)}`, colAmt, y, { align:'right' });
+    y += 4;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(148,163,184);
+    doc.text(`@ Rs ${fmt(item.price)}`, colItem, y);
+    y += 5;
+  });
+
+  // ── TOTAL LINE ──
+  doc.setDrawColor(15,23,42); doc.setLineWidth(0.5); doc.line(lm, y, rm, y);
+  doc.setLineWidth(0.2); y += 1;
+  doc.line(lm, y, rm, y); y += 5;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(100,116,139);
+  doc.text('TOTAL', lm, y);
+  doc.setFontSize(16);
+  doc.setTextColor(29,78,216);
+  doc.text(`Rs ${fmt(sale.total)}`, rm, y, { align:'right' });
+  y += 8;
+
+  dashedLine(y); y += 6;
+
+  // ── SIGNATURE (canvas-based cursive image) ──
+  if(signature) {
+    const sigBoxW = 58;
+    const sigBoxX = rm - sigBoxW;
+
+    // Draw signature using canvas with Dancing Script font
+    const canvas = document.createElement('canvas');
+    canvas.width = 300; canvas.height = 80;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#1D4ED8';
+    ctx.font = 'bold 46px "Dancing Script", cursive';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(signature, 150, 42);
+    const sigImg = canvas.toDataURL('image/png');
+
+    try {
+      doc.addImage(sigImg, 'PNG', sigBoxX, y - 2, sigBoxW, 16, '', 'FAST');
+    } catch(e) {
+      // fallback to italic text
+      doc.setFont('helvetica','bolditalic');
+      doc.setFontSize(16);
+      doc.setTextColor(29,78,216);
+      doc.text(signature, sigBoxX + sigBoxW/2, y + 8, { align:'center' });
+    }
+    y += 17;
+
+    // Signature line
+    doc.setDrawColor(100,116,139); doc.setLineWidth(0.4);
+    doc.line(sigBoxX, y, rm, y);
+    y += 4;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(148,163,184);
+    doc.text('Authorized Signature', sigBoxX + sigBoxW/2, y, { align:'center' });
+    y += 8;
+    dashedLine(y); y += 6;
+  }
+
+  // ── FOOTER ──
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100,116,139);
+  doc.text(footer, W/2, y, { align:'center' });
+  y += 6;
+  dashedLine(y); y += 5;
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(7);
+  doc.setTextColor(148,163,184);
+  doc.text('Software Design by Mudassar Latif Ramay', W/2, y, { align:'center' });
+
+  doc.save(fileName);
+  toast('PDF download ho gayi! 📄', 'success');
+}
+
+
+// ─── HISTORY EDIT ─────────────────────────────────────────────────────
+let editHistPayType = 'paid';
+
+function openEditHistory(saleId) {
+  const s = sales.find(x=>x.id===saleId);
+  if(!s) return;
+  document.getElementById('edit-hist-id').value = saleId;
+  document.getElementById('eh-customer').value = s.customer||'';
+  document.getElementById('eh-phone').value = s.customerPhone||'';
+  document.getElementById('eh-address').value = s.customerAddress||'';
+  editHistPayType = s.payType||'paid';
+  setEditPayType(editHistPayType);
+  renderEditHistItems(s.items);
+
+  // Purana Udhaar load karo (agar pehle se save hai)
+  ehPuranaUdhaar = (s.puranaUdhaar && s.puranaUdhaar.length) ? [...s.puranaUdhaar] : [];
+  ehPuOpen = ehPuranaUdhaar.length > 0;
+  const sec = document.getElementById('eh-purana-udhaar-section');
+  const chev = document.getElementById('eh-pu-chevron');
+  if(sec) sec.style.display = ehPuOpen ? 'block' : 'none';
+  if(chev) chev.style.transform = ehPuOpen ? 'rotate(180deg)' : 'rotate(0)';
+  if(ehPuOpen) renderEhPuList();
+  else {
+    const el = document.getElementById('eh-pu-list');
+    if(el) el.innerHTML = '';
+    const row = document.getElementById('eh-pu-total-row');
+    if(row) row.style.display = 'none';
+  }
+  openModal('modal-edit-history');
+}
+
+function setEditPayType(type) {
+  editHistPayType = type;
+  const paidBtn = document.getElementById('eh-btn-paid');
+  const udhaarBtn = document.getElementById('eh-btn-udhaar');
+  if(type==='paid') {
+    paidBtn.style.background='var(--success)'; paidBtn.style.color='white';
+    udhaarBtn.style.background='white'; udhaarBtn.style.color='var(--warning)';
+  } else {
+    udhaarBtn.style.background='var(--warning)'; udhaarBtn.style.color='white';
+    paidBtn.style.background='white'; paidBtn.style.color='var(--success)';
+  }
+}
+
+function renderEditHistItems(items) {
+  const el = document.getElementById('eh-items-list');
+  if(!items||!items.length){ el.innerHTML=''; return; }
+  el.innerHTML = items.map((item,idx)=>`
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--border);">
+      <div style="margin-bottom:5px;">
+        <label style="font-size:11px;font-weight:700;color:var(--text-muted);">Item Name:</label>
+        <input type="text" id="eh-name-${idx}" value="${item.name.replace(/"/g,'&quot;')}"
+          style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;margin-top:3px;background:#F8FAFC;"
+          placeholder="Item ka naam">
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+        <label style="font-size:11px;color:var(--text-muted);">Price:</label>
+        <input type="number" id="eh-price-${idx}" value="${item.price}" min="0" step="1"
+          style="width:72px;padding:4px 6px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;"
+          oninput="recalcEditTotal()">
+        <label style="font-size:11px;color:var(--text-muted);">Qty:</label>
+        <input type="number" id="eh-qty-${idx}" value="${item.qty}" min="1" step="1"
+          style="width:50px;padding:4px 6px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;"
+          oninput="recalcEditTotal()">
+      </div>
+    </div>`).join('');
+  recalcEditTotal();
+}
+
+function recalcEditTotal() {
+  const saleId = document.getElementById('edit-hist-id').value;
+  const s = sales.find(x=>x.id===saleId);
+  if(!s) return;
+  let total = 0;
+  s.items.forEach((item,idx)=>{
+    const priceEl = document.getElementById('eh-price-'+idx);
+    const qtyEl = document.getElementById('eh-qty-'+idx);
+    if(priceEl && qtyEl) {
+      total += (parseFloat(priceEl.value)||0) * (parseInt(qtyEl.value)||0);
+    }
+  });
+  document.getElementById('eh-total-display').textContent = 'Rs '+fmt(total);
+}
+
+function saveHistoryEdit() {
+  const saleId = document.getElementById('edit-hist-id').value;
+  const sIdx = sales.findIndex(x=>x.id===saleId);
+  if(sIdx===-1) return;
+  const s = sales[sIdx];
+  const oldPayType = s.payType;
+  const oldTotal = s.total;
+  const oldCustomer = s.customer;
+
+  const newCustomer = document.getElementById('eh-customer').value.trim() || 'Walk-in Customer';
+  const newPhone = document.getElementById('eh-phone').value.trim();
+  const newAddress = document.getElementById('eh-address').value.trim();
+  const newPayType = editHistPayType;
+
+  // Update items
+  let newTotal = 0;
+  s.items.forEach((item,idx)=>{
+    const nameEl = document.getElementById('eh-name-'+idx);
+    const priceEl = document.getElementById('eh-price-'+idx);
+    const qtyEl = document.getElementById('eh-qty-'+idx);
+    if(priceEl && qtyEl) {
+      if(nameEl && nameEl.value.trim()) item.name = nameEl.value.trim();
+      const newPrice = parseFloat(priceEl.value)||item.price;
+      const newQty = parseInt(qtyEl.value)||item.qty;
+      item.price = newPrice;
+      item.qty = newQty;
+      newTotal += newPrice * newQty;
+    }
+  });
+
+  // ── STEP 1: Pehle purana udhaar POORI TARAH hata do ──
+  // (chahe customer same ho ya badal gaya ho, chahe payType same ho ya badal gaya ho)
+  if(oldPayType==='udhaar') {
+    const oldU = udhaarData.find(u=>u.name.toLowerCase()===oldCustomer.toLowerCase());
+    if(oldU) {
+      oldU.balance = Math.max(0, oldU.balance - oldTotal);
+      oldU.transactions = (oldU.transactions||[]).filter(t=>t!==saleId);
+      if(oldU.balance <= 0 && !(oldU.transactions||[]).length) {
+        udhaarData = udhaarData.filter(x=>x.id !== oldU.id);
+      }
+    }
+  }
+  // Purana udhaar entries bhi old customer se hata do
+  const oldPuranaTotal = (s.puranaUdhaar||[]).filter(e=>e.amount>0).reduce((a,c)=>a+(c.amount||0),0);
+  if(oldPuranaTotal > 0 && oldCustomer !== 'Walk-in Customer') {
+    const oldU2 = udhaarData.find(u=>u.name.toLowerCase()===oldCustomer.toLowerCase());
+    if(oldU2) {
+      oldU2.balance = Math.max(0, oldU2.balance - oldPuranaTotal);
+      if(oldU2.balance <= 0 && !(oldU2.transactions||[]).length) {
+        udhaarData = udhaarData.filter(x=>x.id !== oldU2.id);
+      }
+    }
+  }
+
+  // ── STEP 2: Sale update karo ──
+  s.customer = newCustomer;
+  s.customerPhone = newPhone;
+  s.customerAddress = newAddress;
+  s.payType = newPayType;
+  s.total = newTotal;
+  s.puranaUdhaar = ehPuranaUdhaar.filter(e=>e.amount>0);
+  sales[sIdx] = s;
+
+  // ── STEP 3: Naya udhaar FRESH add karo ──
+  const _ehPuranaTotal = s.puranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+  const _ehNeedUdhaar = (newPayType==='udhaar' || _ehPuranaTotal>0) && newCustomer !== 'Walk-in Customer';
+  if(_ehNeedUdhaar) {
+    const existU = udhaarData.find(u=>u.name.toLowerCase()===newCustomer.toLowerCase());
+    const _ehNewBal = (newPayType==='udhaar' ? newTotal : 0) + _ehPuranaTotal;
+    if(existU) {
+      existU.balance += _ehNewBal;
+      existU.phone = newPhone || existU.phone;
+      existU.address = newAddress || existU.address;
+      existU.transactions = existU.transactions||[];
+      if(newPayType==='udhaar' && !existU.transactions.includes(saleId)) existU.transactions.push(saleId);
+    } else if(_ehNewBal>0) {
+      udhaarData.push({id:'u_'+Date.now(),name:newCustomer,phone:newPhone,address:newAddress,balance:_ehNewBal,transactions:newPayType==='udhaar'?[saleId]:[]});
+    }
+  }
+
+  save('sales', sales);
+  save('udhaar', udhaarData);
+  closeModal('modal-edit-history');
+  renderHistory(); renderDashboard(); renderUdhaar();
+  toast('Transaction update ho gayi!', 'success');
+}
+
+// ─── UNDO UDHAAR PAYMENT ─────────────────────────────────────────────
+function undoUdhaarPayment(payId) {
+  const paySale = sales.find(x=>x.id===payId);
+  if(!paySale) return;
+  const custId = paySale.udhaarCustomerId;
+  const u = udhaarData.find(x=>x.id===custId);
+  if(!confirm('Kya aap yeh payment undo karna chahte hain?\nRs '+fmt(paySale.total)+' wapas Udhaar mein chali jayegi.')) return;
+
+  // FIX: settledTransactionIds se original transactions recover karo
+  const settledIds = paySale.settledTransactionIds || [];
+
+  if(u) {
+    u.balance += paySale.total;
+
+    if(paySale.isUdhaarSettle) {
+      // FIX: transactions list wapas restore karo (v20 mein clear ho gayi thi)
+      const currentTxSet = new Set(u.transactions||[]);
+      settledIds.forEach(txId=>{
+        const s = sales.find(x=>x.id===txId);
+        if(s) {
+          s.payType = 'udhaar';
+          s.paidAmount = 0;
+          if(!currentTxSet.has(txId)) {
+            u.transactions = u.transactions||[];
+            u.transactions.push(txId);
+            currentTxSet.add(txId);
+          }
+        }
+      });
+    }
+
+    if(paySale.isPartialPay) {
+      // FIX: settledIds use karo, newest first, paidAmount wapas karo aur transactions restore karo
+      const txIdsToReverse = settledIds.length ? settledIds : (u.transactions||[]);
+      let toRemove = paySale.total;
+      const currentTxSet2 = new Set(u.transactions||[]);
+      [...txIdsToReverse].reverse().forEach(txId=>{
+        const s = sales.find(x=>x.id===txId);
+        if(!s || toRemove<=0) return;
+        const prevPaid = s.paidAmount||0;
+        const removing = Math.min(prevPaid, toRemove);
+        s.paidAmount = prevPaid - removing;
+        if(s.paidAmount < s.total) s.payType = 'udhaar';
+        toRemove -= removing;
+        // Agar yeh sale ab phir se pending hai to transactions mein wapas add karo
+        if(!currentTxSet2.has(txId)) {
+          u.transactions = u.transactions||[];
+          u.transactions.push(txId);
+          currentTxSet2.add(txId);
+        }
+      });
+    }
+
+    save('udhaar', udhaarData);
+  }
+
+  sales = sales.filter(x=>x.id!==payId);
+  save('sales', sales);
+  renderHistory(); renderUdhaar(); renderDashboard();
+  toast('Payment undo ho gayi — Udhaar wapas aa gaya!', 'success');
+}
+
+// ─── DELETE HISTORY ───────────────────────────────────────────────────
+function deleteHistoryItem(saleId) {
+  const s = sales.find(x=>x.id===saleId);
+  if(!s) return;
+  const isPayment = saleId.startsWith('PAY-');
+  const label = isPayment ? 'yeh wapsi record' : 'yeh transaction';
+  if(!confirm(`Kya aap ${label} delete karna chahte hain?\nYeh dashboard se bhi remove ho jayega.`)) return;
+
+  // Agar udhaar tha to balance bhi adjust karo
+  if(s.payType==='udhaar' && !isPayment) {
+    const u = udhaarData.find(x=>x.name.toLowerCase()===(s.customer||'').toLowerCase());
+    if(u) {
+      // Naya udhaar (is sale ka total) hatao
+      u.balance = Math.max(0, u.balance - s.total);
+      u.transactions = (u.transactions||[]).filter(t=>t!==saleId);
+      // Purana udhaar jo is sale mein add kiya tha, woh bhi hatao
+      const puranaTotal = (s.puranaUdhaar||[]).reduce((a,c)=>a+(c.amount||0),0);
+      if(puranaTotal > 0) {
+        u.balance = Math.max(0, u.balance - puranaTotal);
+      }
+      // Agar balance zero aur koi transaction nahi, to entry hata do
+      if(u.balance <= 0 && !(u.transactions||[]).length) {
+        udhaarData = udhaarData.filter(x=>x.id !== u.id);
+      }
+    }
+  }
+  // Agar sirf puranaUdhaar tha (payType=paid lekin puranaUdhaar entries hain)
+  if(!isPayment && s.payType !== 'udhaar') {
+    const puranaTotal = (s.puranaUdhaar||[]).reduce((a,c)=>a+(c.amount||0),0);
+    if(puranaTotal > 0 && s.customer && s.customer !== 'Walk-in Customer') {
+      const u = udhaarData.find(x=>x.name.toLowerCase()===(s.customer||'').toLowerCase());
+      if(u) {
+        u.balance = Math.max(0, u.balance - puranaTotal);
+        if(u.balance <= 0 && !(u.transactions||[]).length) {
+          udhaarData = udhaarData.filter(x=>x.id !== u.id);
+        }
+      }
+    }
+  }
+  // Agar PAY- record tha (wapsi) to udhaar balance wapas badhao
+  if(isPayment) {
+    // PAY records customer mein "(Udhaar Settled)" ya "(Partial Payment)" hota hai
+    // Balance wapas karna zaroori nahi kyunke udhaar already paid mark ho chuka hai
+    // Sirf sales record se remove karo
+  }
+
+  sales = sales.filter(x=>x.id!==saleId);
+  save('sales', sales);
+  save('udhaar', udhaarData);
+  renderHistory(); renderDashboard(); renderUdhaar();
+  toast('Transaction delete ho gayi!', 'success');
+}
+
+function filterHistory(type, el) {
+  historyFilter = type;
+  document.querySelectorAll('#screen-history .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+
+function renderHistory() {
+  const filtered = historyFilter==='all' ? sales : sales.filter(s=>s.payType===historyFilter);
+  const el = document.getElementById('history-list');
+  if(!filtered.length) {
+    el.innerHTML=`<div class="empty-state"><i class="fas fa-history"></i><p>No transactions yet</p></div>`;
+    return;
+  }
+  el.innerHTML = [...filtered].reverse().map(s=>{
+    const isPayment = s.id.startsWith('PAY-');
+
+    // Icon & badge logic
+    const iconBg = isPayment ? '#EFF6FF' : (s.payType==='paid' ? '#D1FAE5' : '#FEF3C7');
+    const iconClass = isPayment ? 'fa-coins' : (s.payType==='paid' ? 'fa-check-circle' : 'fa-clock');
+    const iconColor = isPayment ? 'var(--blue-primary)' : (s.payType==='paid' ? 'var(--success)' : 'var(--warning)');
+    const badgeClass = isPayment ? 'badge-blue' : (s.payType==='paid' ? 'badge-success' : 'badge-warning');
+    const badgeLabel = isPayment ? 'Wapsi' : (s.payType==='paid' ? 'Paid' : 'Udhaar');
+    const sEncoded = encodeURIComponent(JSON.stringify(s));
+
+    // Udhaar baqi amount — original udhaar sale ke liye
+    let udhaarInfoHtml = '';
+    if(!isPayment && s.payType==='udhaar') {
+      const paid = s.paidAmount || 0;
+      const baqi = s.total - paid;
+      udhaarInfoHtml = `
+        <div style="background:#FEF3C7;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:11px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+            <span style="color:#92400E;font-weight:600;">Total:</span>
+            <span style="font-weight:700;color:#92400E;">Rs ${fmt(s.total)}</span>
+          </div>
+          ${paid>0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+            <span style="color:#065F46;font-weight:600;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Paid:</span>
+            <span style="font-weight:700;color:#065F46;">Rs ${fmt(paid)}</span>
+          </div>` : ''}
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:#DC2626;font-weight:700;">Baqi:</span>
+            <span style="font-weight:800;color:#DC2626;">Rs ${fmt(baqi)}</span>
+          </div>
+        </div>`;
+    }
+
+    // PAY- record ke liye — total invoice, received, remaining
+    let payInfoHtml = '';
+    if(isPayment && (s.isUdhaarSettle || s.isPartialPay)) {
+      const custId = s.udhaarCustomerId;
+      const u = udhaarData.find(x=>x.id===custId);
+      const custName = u ? u.name : (s.customer||'').replace(' (Udhaar Settled)','').replace(' (Partial Payment)','');
+
+      // ── FIX: Historical balance use karo — current udhaarData nahi (jo naya cycle dikha sakta hai) ──
+      // isUdhaarSettle = poora clear tha → remaining = 0
+      // isPartialPay = balanceBeforePayment stored → remaining = balanceBeforePayment - payment
+      let historicalRemaining;
+      if(s.isUdhaarSettle) {
+        historicalRemaining = 0; // Full settle hamesha zero pe khatam hota hai
+      } else if(s.balanceBeforePayment != null) {
+        historicalRemaining = Math.max(0, s.balanceBeforePayment - s.total);
+      } else {
+        // Legacy fallback: current balance (purana data compatibility)
+        historicalRemaining = u ? u.balance : 0;
+      }
+
+      // Total paid at this point = balanceBeforePayment se nikalte hain
+      const totalPaidAtThisPoint = s.balanceBeforePayment != null
+        ? (s.balanceBeforePayment - historicalRemaining)
+        : s.total;
+
+      // Full payment ke liye: pehle di gayi raqam bhi dikhao
+      let prevPaymentsHtml = '';
+      if(s.isUdhaarSettle && s.prevPaymentsHistory && s.prevPaymentsHistory.length > 0) {
+        const prevList = s.prevPaymentsHistory.map(p=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;">
+            <span style="color:#065F46;font-size:10px;">${new Date(p.date).toLocaleDateString('en-PK',{day:'2-digit',month:'short'})}</span>
+            <span style="font-weight:700;color:#065F46;font-size:10px;">Rs ${fmt(p.amount)}</span>
+          </div>`).join('');
+        prevPaymentsHtml = `
+          <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #BFDBFE;">
+            <div style="font-size:10px;font-weight:700;color:#1E40AF;margin-bottom:3px;"><i class="fas fa-history" style="font-size:9px;"></i> Pehle Di Gayi Raqam:</div>
+            ${prevList}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:3px;margin-top:2px;border-top:1px solid #BFDBFE;">
+              <span style="color:#1E40AF;font-weight:700;font-size:10px;">Pehle Ka Kul:</span>
+              <span style="font-weight:800;color:#1E40AF;font-size:11px;">Rs ${fmt(s.prevPaidTotal||0)}</span>
+            </div>
+          </div>`;
+      }
+
+      payInfoHtml = `
+        <div style="background:#EFF6FF;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:11px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+            <span style="color:var(--blue-dark);font-weight:600;">Is baar mili:</span>
+            <span style="font-weight:700;color:var(--blue-primary);">Rs ${fmt(s.total)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:${historicalRemaining>0?'#DC2626':'#065F46'};font-weight:700;">Us waqt baqi:</span>
+            <span style="font-weight:800;color:${historicalRemaining>0?'#DC2626':'#065F46'};">${historicalRemaining>0?'Rs '+fmt(historicalRemaining):'Poora clear ✓'}</span>
+          </div>
+          ${prevPaymentsHtml}
+        </div>`;
+    }
+
+    return `
+    <div class="history-item fade-up">
+      <div class="history-icon" style="background:${iconBg};">
+        <i class="fas ${iconClass}" style="color:${iconColor};font-size:18px;"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-bold text-sm">${s.customer||'Walk-in'}</span>
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${new Date(s.date).toLocaleString('en-PK')} · ${s.id}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.items.map(i=>i.name+'×'+i.qty).join(', ')}</div>
+        ${udhaarInfoHtml}
+      </div>
+      <div class="flex-shrink-0" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:8px;">
+        <div class="font-bold" style="color:var(--blue-primary);">Rs ${fmt(s.total)}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+          ${s.customerPhone ? `<button onclick='sendWhatsAppDirect("${s.customerPhone}","${s.customer||''}","${s.id}",${s.total},"${s.payType}")' class="icon-btn" style="background:#25D366;color:white;width:30px;height:30px;" title="WhatsApp"><i class="fab fa-whatsapp" style="font-size:13px;"></i></button>` : ''}
+          <button onclick='showInvoice(JSON.parse(decodeURIComponent("${sEncoded}")))' class="icon-btn icon-btn-blue" title="Invoice"><i class="fas fa-file-invoice" style="font-size:13px;"></i></button>
+          ${!isPayment ? `<button onclick='openEditHistory("${s.id}")' class="icon-btn icon-btn-green" title="Edit"><i class="fas fa-edit" style="font-size:13px;"></i></button>` : ''}
+          ${isPayment && (s.isUdhaarSettle||s.isPartialPay) ? `<button onclick='undoUdhaarPayment("${s.id}")' class="icon-btn" style="background:#FEF3C7;color:#D97706;" title="Undo — Udhaar wapas karo"><i class="fas fa-undo" style="font-size:12px;"></i></button>` : ''}
+          <button onclick='deleteHistoryItem("${s.id}")' class="icon-btn icon-btn-red" title="Delete karein"><i class="fas fa-trash" style="font-size:12px;"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sendWhatsAppDirect(rawPhone, customer, invoiceId, total, payType) {
+  const invSet = load('invoiceSettings', {});
+  const biz = invSet.bizName || currentUser.business;
+  const footer = invSet.footer || 'Shukriya! Dobara aana 🙏';
+  const isPaid = payType === 'paid';
+  let msg = `🧾 *${biz}*\n`;
+  msg += `*Invoice:* ${invoiceId}\n`;
+  msg += `*Status:* ${isPaid ? '✅ PAID' : '⏳ UDHAAR'}\n`;
+  msg += `*Total:* Rs ${fmt(total)}\n\n${footer}`;
+  let phone = rawPhone.replace(/\D/g,'');
+  if(phone.startsWith('0')) phone = '92' + phone.slice(1);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function sendWhatsAppUdhaar(id) {
+  const u = udhaarData.find(x=>x.id===id);
+  if(!u || !u.phone) return toast('Phone number nahi hai','error');
+  const invSet = load('invoiceSettings', {});
+  const biz = invSet.bizName || currentUser.business;
+  let msg = `Assalam o Alaikum ${u.name} bhai,\n\n`;
+  msg += `*${biz}* ki taraf se reminder:\n`;
+  msg += `Aap ka pending udhaar *Rs ${fmt(u.balance)}* hai.\n\n`;
+  msg += `Meherbani farma ke jald ada karein.\nShukriya 🙏`;
+  let phone = u.phone.replace(/\D/g,'');
+  if(phone.startsWith('0')) phone = '92' + phone.slice(1);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ─── UDHAAR ───────────────────────────────────────────────────────────
+function renderUdhaar() {
+  const q = (document.getElementById('udhaar-search')||{}).value||'';
+  const allPending = udhaarData.filter(u=>u.balance>0);
+  const pending = allPending.filter(u=>u.name.toLowerCase().includes(q.toLowerCase()));
+  const total = allPending.reduce((a,u)=>a+u.balance,0);
+  document.getElementById('udhaar-total').textContent = 'Rs '+fmt(total);
+  const el = document.getElementById('udhaar-list');
+  if(!allPending.length) {
+    el.innerHTML=`<div class="empty-state"><i class="fas fa-handshake"></i><p>No pending Udhaar.<br>All cleared! 🎉</p></div>`;
+    return;
+  }
+  if(!pending.length) {
+    el.innerHTML=`<div class="empty-state"><i class="fas fa-search"></i><p>No customer found<br>matching "<strong>${q}</strong>"</p></div>`;
+    return;
+  }
+  el.innerHTML = pending.map(u=>{
+    // Is customer ki sab udhaar transactions
+    const txListAll = (u.transactions||[]).map(txId=>{
+      const s = sales.find(x=>x.id===txId);
+      return s || null;
+    }).filter(Boolean);
+    // Sirf wo transactions dikhao jinka baqi > 0 hai (paid nahi hui)
+    const txList = txListAll.filter(s=>(s.total-(s.paidAmount||0)) > 0);
+    // ── FIX: sirf active (unpaid) transactions ka total dikhao ──
+    const totalUdhaarGiven = txList.reduce((a,s)=>a+s.total,0);
+    const totalPaid = txList.reduce((a,s)=>a+(s.paidAmount||0),0);
+
+    // Transaction history rows
+    const txRows = txList.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #FDE68A;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#92400E;">${s.id}</div>
+          <div style="font-size:10px;color:#B45309;">${new Date(s.date).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'})}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;font-weight:700;color:#92400E;">Rs ${fmt(s.total)}</div>
+          ${(s.paidAmount||0)>0 ? `<div style="font-size:10px;color:#065F46;">Paid: Rs ${fmt(s.paidAmount)}</div>` : ''}
+          <div style="font-size:10px;font-weight:700;color:#DC2626;">Baqi: Rs ${fmt(s.total-(s.paidAmount||0))}</div>
+        </div>
+      </div>`).join('');
+
+    // Purana Udhaar entries collect karo from active transactions only
+    let allPuranaEntries = [];
+    txList.forEach(s=>{
+      if(s.puranaUdhaar && s.puranaUdhaar.length) {
+        s.puranaUdhaar.forEach(e=>{
+          if(e.amount>0) allPuranaEntries.push({...e, fromInvoice: s.id});
+        });
+      }
+    });
+    allPuranaEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const puranaTotal = allPuranaEntries.reduce((a,c)=>a+(c.amount||0),0);
+
+    // Sirf wo puranaEntries dikhao jo abhi pending hain (paid nahi hui)
+    // FIX: txList use karo (sirf active transactions) taake undo ke baad bhi sahi dikhe
+    const nayaTotal2 = txList.reduce((a,s)=>a+(s.total-(s.paidAmount||0)),0);
+    const grandTotal2 = nayaTotal2 + puranaTotal;
+    const totalPaidSoFar2 = grandTotal2 - u.balance;
+    const puranaPaidAmt = Math.max(0, totalPaidSoFar2 - nayaTotal2);
+    let runningPaid = puranaPaidAmt;
+    const visiblePuranaEntries = [];
+    for(const e of allPuranaEntries) {
+      if(runningPaid >= e.amount) {
+        runningPaid -= e.amount;
+      } else {
+        const stillOwed = e.amount - runningPaid;
+        runningPaid = 0;
+        visiblePuranaEntries.push({...e, amount: stillOwed});
+      }
+    }
+    const visiblePuranaTotal = visiblePuranaEntries.reduce((a,c)=>a+(c.amount||0),0);
+
+    const puranaRows = visiblePuranaEntries.length ? `
+      <div style="margin-top:8px;padding-top:6px;border-top:1px solid #FDE68A;">
+        <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;"><i class="fas fa-clock-rotate-left mr-1"></i> Purana Udhaar (Abhi Baqi)</div>
+        ${visiblePuranaEntries.map(e=>{
+          const d = new Date(e.date);
+          const dStr = d.toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'});
+          const tStr = d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit',hour12:true});
+          return `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;border-bottom:1px dotted #FDE68A;">
+            <div>
+              <div style="font-size:10px;color:#B45309;font-weight:600;">${dStr} &nbsp;•&nbsp; ${tStr}</div>
+              ${e.note ? `<div style="font-size:9px;color:#A16207;font-style:italic;">${e.note}</div>` : ''}
+              <div style="font-size:9px;color:#D97706;opacity:.7;">${e.fromInvoice}</div>
+            </div>
+            <span style="font-size:12px;font-weight:800;color:#D97706;">Rs ${fmt(e.amount)}</span>
+          </div>`;
+        }).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:5px;margin-top:2px;">
+          <span style="font-size:11px;font-weight:700;color:#92400E;">Purana Baqi Kull:</span>
+          <span style="font-size:13px;font-weight:800;color:#D97706;">Rs ${fmt(visiblePuranaTotal)}</span>
+        </div>
+      </div>` : '';
+
+    return `
+    <div style="background:white;border-radius:16px;border:1px solid var(--border);margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+          <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#F59E0B,#FBBF24);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0;">
+            ${u.name.charAt(0).toUpperCase()}
+          </div>
+          <div style="min-width:0;">
+            <div class="font-bold text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.name}</div>
+            ${u.phone ? `<div style="font-size:11px;color:var(--text-muted);"><i class="fas fa-phone" style="font-size:9px;"></i> ${u.phone}</div>` : ''}
+            ${u.address ? `<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><i class="fas fa-map-marker-alt" style="font-size:9px;"></i> ${u.address}</div>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
+          ${u.phone ? `<button onclick="sendWhatsAppUdhaar('${u.id}')" class="btn-primary" style="width:auto;padding:6px 10px;font-size:11px;background:linear-gradient(135deg,#25D366,#128C7E);box-shadow:none;"><i class="fab fa-whatsapp mr-1"></i> Message</button>` : ''}
+          <button onclick="partialPayment('${u.id}')" class="btn-primary" style="width:auto;padding:6px 10px;font-size:11px;background:linear-gradient(135deg,#F59E0B,#FBBF24);box-shadow:none;"><i class="fas fa-coins mr-1"></i> Wapsi</button>
+          <button onclick="markUdhaarPaid('${u.id}')" class="btn-primary" style="width:auto;padding:6px 10px;font-size:11px;"><i class="fas fa-check mr-1"></i> Full Paid</button>
+        </div>
+      </div>
+      <!-- Summary bar -->
+      <div style="background:#FEF3C7;padding:10px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px dashed #FDE68A;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:700;color:#92400E;"><i class="fas fa-exclamation-circle mr-1" style="color:#DC2626;"></i> Kull Baqi</span>
+          <span style="font-size:18px;font-weight:800;color:#DC2626;font-family:'Space Grotesk',sans-serif;">Rs ${fmt(u.balance)}</span>
+        </div>
+        ${(()=>{
+          // ── FIX: Sirf CURRENT active cycle ki payments count karo ──
+          // Current cycle ki pehli transaction ka date nikalo
+          let cycleStartMs = 0;
+          const activeTxTimes = (u.transactions||[]).map(txId => {
+            const st = sales.find(x=>x.id===txId);
+            return st ? new Date(st.date).getTime() : Infinity;
+          }).filter(t => isFinite(t));
+          if(activeTxTimes.length > 0) cycleStartMs = Math.min(...activeTxTimes);
+
+          // Agar koi active transaction nahi (cycleStartMs===0), matlab abhi koi pending nahi
+          // Is case mein wapasAaya=0 dikhao (purane cycle ka data count na ho)
+          const wapasAaya = (cycleStartMs === 0) ? 0 : sales.filter(s =>
+            s.udhaarCustomerId===u.id &&
+            (s.isUdhaarSettle||s.isPartialPay) &&
+            new Date(s.date).getTime() >= cycleStartMs
+          ).reduce((a,s)=>a+s.total,0);
+          // Agar kuch wapas aaya hai to "Purana Baqi" = jo abhi baqi hai (u.balance)
+          // Nahi to normal display
+          if(wapasAaya > 0) {
+            return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div style="text-align:center;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#065F46;">Wapas Aaya</div>
+                <div style="font-size:12px;font-weight:800;color:#065F46;font-family:'Space Grotesk',sans-serif;">Rs ${fmt(wapasAaya)}</div>
+              </div>
+              <div style="width:1px;height:28px;background:#FDE68A;"></div>
+              <div style="text-align:center;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#DC2626;">Purana Baqi</div>
+                <div style="font-size:13px;font-weight:800;color:#DC2626;font-family:'Space Grotesk',sans-serif;">Rs ${fmt(u.balance)}</div>
+              </div>
+            </div>`;
+          } else {
+            return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div style="text-align:center;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#92400E;">Naya Udhaar</div>
+                <div style="font-size:12px;font-weight:800;color:#92400E;font-family:'Space Grotesk',sans-serif;">Rs ${fmt(totalUdhaarGiven)}</div>
+              </div>
+              <div style="width:1px;height:28px;background:#FDE68A;"></div>
+              <div style="text-align:center;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#D97706;">Purana Baqi</div>
+                <div style="font-size:12px;font-weight:800;color:#D97706;font-family:'Space Grotesk',sans-serif;">Rs ${fmt(visiblePuranaTotal)}</div>
+              </div>
+              <div style="width:1px;height:28px;background:#FDE68A;"></div>
+              <div style="text-align:center;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#065F46;">Wapas Aaya</div>
+                <div style="font-size:12px;font-weight:800;color:#065F46;font-family:'Space Grotesk',sans-serif;">Rs 0</div>
+              </div>
+            </div>`;
+          }
+        })()}
+      </div>
+      <!-- Transaction history (collapsible) -->
+      ${txList.length>0 ? `
+      <div style="padding:10px 14px;background:#FFFBEB;">
+        <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><i class="fas fa-list-ul mr-1"></i> Transaction History</div>
+        ${txRows}
+        ${puranaRows}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function markUdhaarPaid(id) {
+  const u = udhaarData.find(x=>x.id===id);
+  if(!u) return;
+
+  // ── FIX: Pehle current transaction IDs capture karo (clear karne se pehle) ──
+  const settledTxIds = [...(u.transactions||[])];
+
+  // Saari puranaUdhaar entries collect karo from settled transactions
+  const allPuranaForInvoice = [];
+  settledTxIds.forEach(txId=>{
+    const s = sales.find(x=>x.id===txId);
+    if(s && s.puranaUdhaar && s.puranaUdhaar.length) {
+      s.puranaUdhaar.forEach(e=>{ if(e.amount>0) allPuranaForInvoice.push({...e, fromInvoice: s.id}); });
+    }
+  });
+  allPuranaForInvoice.sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  // Pehle jo partial payments ho chuki hain unka record
+  const prevPayments = sales.filter(s=>s.udhaarCustomerId===id && (s.isUdhaarSettle||s.isPartialPay));
+  const prevPaidTotal = prevPayments.reduce((a,s)=>a+s.total,0);
+
+  const paidSale = {
+    id: 'PAY-'+Date.now().toString().slice(-6),
+    date: new Date().toISOString(),
+    items: [{name:'Udhaar Full Payment (Naya + Purana Kull)',qty:1,price:u.balance,category:''}],
+    total: u.balance, payType: 'paid', customer: u.name+' (Udhaar Settled)',
+    customerPhone: u.phone||'', customerAddress: u.address||'',
+    udhaarCustomerId: id, isUdhaarSettle: true,
+    balanceBeforePayment: u.balance,  // ── FIX: History ke liye balance snapshot ──
+    settledPuranaUdhaar: allPuranaForInvoice,
+    settledTransactionIds: settledTxIds,  // ── FIX: Invoice ke liye settled IDs store karo ──
+    prevPaymentsHistory: prevPayments.map(p=>({id:p.id,date:p.date,amount:p.total})),
+    prevPaidTotal: prevPaidTotal
+  };
+  // Sab original udhaar sales ko bhi paid mark karo
+  settledTxIds.forEach(txId=>{
+    const s = sales.find(x=>x.id===txId);
+    if(s) { s.payType='paid'; s.paidAmount = s.total; }
+  });
+  sales.push(paidSale);
+  save('sales', sales);
+  const prevBalance = u.balance;
+  u.balance = 0;
+  u.transactions = [];  // ── FIX: Full payment ke baad transactions CLEAR karo ──
+  save('udhaar', udhaarData);
+  renderUdhaar(); renderDashboard(); renderHistory();
+  updateNotifBadge();
+  toast(`${u.name} ka Udhaar poora clear!`, 'success');
+  showInvoice(paidSale);
+}
+
+function partialPayment(id) {
+  const u = udhaarData.find(x=>x.id===id);
+  if(!u) return;
+  document.getElementById('partial-udhaar-id').value = id;
+  document.getElementById('partial-cust-name').textContent = u.name + ' — Kull Baqi (Naya + Purana)';
+  document.getElementById('partial-balance-show').textContent = 'Rs '+fmt(u.balance);
+  document.getElementById('partial-amount').value = '';
+  document.getElementById('partial-remaining-preview').style.display='none';
+  openModal('modal-partial-pay');
+  // Live preview
+  document.getElementById('partial-amount').oninput = function() {
+    const amt = parseFloat(this.value)||0;
+    const rem = Math.max(0, u.balance - amt);
+    const preview = document.getElementById('partial-remaining-preview');
+    if(amt>0) {
+      preview.style.display='block';
+      document.getElementById('partial-remaining-val').textContent = 'Rs '+fmt(rem);
+      if(amt>=u.balance) {
+        preview.style.background='#F0FDF4'; preview.style.borderColor='#BBF7D0';
+        document.getElementById('partial-remaining-val').style.color='var(--success)';
+        document.getElementById('partial-remaining-val').textContent = 'Rs 0 (Poora clear!)';
+      } else {
+        preview.style.background='#FFFBEB'; preview.style.borderColor='#FDE68A';
+        document.getElementById('partial-remaining-val').style.color='var(--warning)';
+      }
+    } else { preview.style.display='none'; }
+  };
+}
+
+function confirmPartialPayment() {
+  const id = document.getElementById('partial-udhaar-id').value;
+  const u = udhaarData.find(x=>x.id===id);
+  if(!u) return;
+  const amt = parseFloat(document.getElementById('partial-amount').value)||0;
+  if(!amt || amt<=0) return toast('Raqam daalna zaroori hai','error');
+  if(amt>u.balance) return toast(`Raqam balance se zyada hai (Rs ${fmt(u.balance)})`, 'error');
+  const actualAmt = Math.min(amt, u.balance);
+
+  // Purana udhaar snapshot lo (jo abhi pending hai) — wapsi invoice mein dikhane ke liye
+  const allPuranaSnap = [];
+  (u.transactions||[]).forEach(txId=>{
+    const s = sales.find(x=>x.id===txId);
+    if(s && s.puranaUdhaar && s.puranaUdhaar.length) {
+      s.puranaUdhaar.forEach(e=>{ if(e.amount>0) allPuranaSnap.push({...e, fromInvoice: s.id}); });
+    }
+  });
+  allPuranaSnap.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  // Sirf pending purana udhaar (jo abhi baqi ho)
+  const nayaTotal = (u.transactions||[]).reduce((sum,txId)=>{ const s=sales.find(x=>x.id===txId); return sum+(s?s.total:0); },0);
+  const puranaTotal = allPuranaSnap.reduce((a,c)=>a+(c.amount||0),0);
+  const grandTotal = nayaTotal + puranaTotal;
+  const totalPaidB4 = grandTotal - u.balance;
+  const puranaPaidB4 = Math.max(0, totalPaidB4 - nayaTotal);
+  let runningP = puranaPaidB4;
+  const pendingPuranaSnap = [];
+  for(const e of allPuranaSnap) {
+    if(runningP >= e.amount) { runningP -= e.amount; }
+    else { pendingPuranaSnap.push({...e, amount: e.amount - runningP}); runningP = 0; }
+  }
+
+  // ── FIX: Invoice ke liye current transaction IDs capture karo ──
+  const currentTxIds = [...(u.transactions||[])];
+
+  const paySale = {
+    id: 'PAY-'+Date.now().toString().slice(-6),
+    date: new Date().toISOString(),
+    items: [{name:`Udhaar Wapsi (${u.name})`,qty:1,price:actualAmt,category:''}],
+    total: actualAmt, payType: 'paid', customer: u.name+' (Partial Payment)',
+    customerPhone: u.phone||'', customerAddress: u.address||'',
+    udhaarCustomerId: id, isPartialPay: true,
+    wapsiPuranaUdhaar: pendingPuranaSnap,
+    balanceBeforePayment: u.balance,
+    settledTransactionIds: currentTxIds  // ── FIX: Invoice ke liye snapshot ──
+  };
+  // Remaining amount update karo original sales mein (oldest first)
+  let remaining = actualAmt;
+  (u.transactions||[]).forEach(txId=>{
+    const s = sales.find(x=>x.id===txId);
+    if(!s || remaining<=0) return;
+    const prevPaid = s.paidAmount||0;
+    const needed = s.total - prevPaid;
+    if(needed<=0) return;
+    const applying = Math.min(needed, remaining);
+    s.paidAmount = prevPaid + applying;
+    if(s.paidAmount >= s.total) s.payType = 'paid';
+    remaining -= applying;
+  });
+  sales.push(paySale);
+  save('sales', sales);
+  u.balance = Math.max(0, u.balance - actualAmt);
+  // ── FIX: Jo transactions poori tarah pay ho gayi, unhe udhaar record se hata do ──
+  u.transactions = (u.transactions||[]).filter(txId => {
+    const s = sales.find(x=>x.id===txId);
+    return s && (s.total - (s.paidAmount||0)) > 0;
+  });
+  save('udhaar', udhaarData);
+  closeModal('modal-partial-pay');
+  renderUdhaar(); renderDashboard(); renderHistory();
+  if(u.balance===0) toast(`${u.name} ka Udhaar poora clear! 🎉`, 'success');
+  else toast(`Rs ${fmt(actualAmt)} receive hua. Baqi: Rs ${fmt(u.balance)}`, 'success');
+  showInvoice(paySale);
+}
+
+// ─── CUSTOM INVOICE ──────────────────────────────────────────────────
+let ciItems = [];
+
+function openCustomInvoice() {
+  ciItems = [{name:'', costPrice:0, price:0, qty:1}];
+  ciPuranaUdhaar = [];
+  ciPuOpen = false;
+  document.getElementById('ci-customer').value = '';
+  document.getElementById('ci-phone').value = '';
+  document.getElementById('ci-paytype').value = 'paid';
+  const sec = document.getElementById('ci-purana-udhaar-section');
+  const chev = document.getElementById('ci-pu-chevron');
+  if(sec) sec.style.display = 'none';
+  if(chev) chev.style.transform = 'rotate(0)';
+  const row = document.getElementById('ci-pu-total-row');
+  if(row) row.style.display = 'none';
+  renderCiItems();
+  openModal('modal-custom-invoice');
+}
+
+function renderCiItems() {
+  const el = document.getElementById('ci-items-list');
+  // Header row
+  const header = `
+    <div style="display:grid;grid-template-columns:1fr 78px 78px 52px 34px;gap:5px;margin-bottom:4px;padding:0 2px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Item Naam</div>
+      <div style="font-size:10px;font-weight:700;color:#D97706;text-transform:uppercase;text-align:center;">Cost Rs</div>
+      <div style="font-size:10px;font-weight:700;color:var(--blue-primary);text-transform:uppercase;text-align:center;">Sale Rs</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;text-align:center;">Qty</div>
+      <div></div>
+    </div>`;
+  el.innerHTML = header + ciItems.map((item,i)=>`
+    <div class="ci-item-row">
+      <input type="text" placeholder="Item naam" value="${item.name}"
+        class="ci-input ci-name-input"
+        oninput="ciItems[${i}].name=this.value">
+      <input type="number" placeholder="0" value="${item.costPrice||''}" min="0"
+        class="ci-input ci-cost-input"
+        style="border-color:#FDE68A;background:#FFFBEB;"
+        oninput="ciItems[${i}].costPrice=parseFloat(this.value)||0;updateCiTotal()">
+      <input type="number" placeholder="0" value="${item.price||''}" min="0"
+        class="ci-input ci-price-input"
+        oninput="ciItems[${i}].price=parseFloat(this.value)||0;updateCiTotal()">
+      <input type="number" placeholder="1" value="${item.qty}" min="1"
+        class="ci-input ci-input-qty ci-qty-input"
+        oninput="ciItems[${i}].qty=parseInt(this.value)||1;updateCiTotal()">
+      <div class="ci-del-wrap">
+        ${ciItems.length>1
+          ? `<button onclick="removeCiItem(${i})" class="ci-del-btn" title="Hatao">×</button>`
+          : `<div style="width:34px;height:34px;"></div>`}
+      </div>
+    </div>`).join('');
+  updateCiTotal();
+}
+
+function addCustomInvoiceItem() {
+  ciItems.push({name:'', costPrice:0, price:0, qty:1});
+  renderCiItems();
+}
+
+function removeCiItem(i) {
+  ciItems.splice(i,1);
+  renderCiItems();
+}
+
+function updateCiTotal() {
+  const total = ciItems.reduce((a,c)=>a+(c.price*c.qty),0);
+  const totalCost = ciItems.reduce((a,c)=>a+((c.costPrice||0)*c.qty),0);
+  const profit = total - totalCost;
+  const el = document.getElementById('ci-total-display');
+  if(el) el.textContent = 'Rs '+fmt(total);
+  const profitEl = document.getElementById('ci-profit-display');
+  if(profitEl) {
+    profitEl.textContent = 'Rs '+fmt(profit);
+    profitEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+  }
+}
+
+function generateCustomInvoice() {
+  const customer = document.getElementById('ci-customer').value.trim() || 'Walk-in Customer';
+  const phone = document.getElementById('ci-phone').value.trim();
+  const payType = document.getElementById('ci-paytype').value;
+  const validItems = ciItems.filter(i=>i.name.trim() && i.price>0);
+  if(!validItems.length) return toast('Kam az kam ek item daalna zaroori hai','error');
+  const total = validItems.reduce((a,c)=>a+(c.price*c.qty),0);
+  const validCiPuranaUdhaar = ciPuranaUdhaar.filter(e=>e.amount>0);
+  const sale = {
+    id: 'CI-'+Date.now().toString().slice(-6),
+    date: new Date().toISOString(),
+    items: validItems.map(i=>({name:i.name,price:i.price,costPrice:i.costPrice||0,qty:i.qty,category:''})),
+    total, payType, customer, customerPhone: phone, customerAddress: '',
+    isCustomInvoice: true,
+    puranaUdhaar: validCiPuranaUdhaar
+  };
+  sales.push(sale);
+  save('sales', sales);
+  // Udhaar update: naya + purana dono
+  const _ciPuranaTotal = validCiPuranaUdhaar.reduce((a,c)=>a+(c.amount||0),0);
+  const _ciNeedUdhaar = (payType==='udhaar' || _ciPuranaTotal>0) && customer!=='Walk-in Customer';
+  if(_ciNeedUdhaar) {
+    const existing = udhaarData.find(u=>u.name.toLowerCase()===customer.toLowerCase());
+    if(payType==='paid') {
+      // Customer ne cash pay kiya — puranaUdhaar clear ho gaya
+      if(existing && _ciPuranaTotal > 0) {
+        existing.balance = Math.max(0, existing.balance - _ciPuranaTotal);
+        existing.phone = phone||existing.phone;
+        if(existing.balance <= 0 && !(existing.transactions||[]).length) {
+          udhaarData = udhaarData.filter(x=>x.id !== existing.id);
+        }
+      }
+    } else {
+      // payType=udhaar: naya + purana dono add karo
+      const _ciNewBal = total + _ciPuranaTotal;
+      if(existing) {
+        // ── FIX: Agar pehle balance zero tha toh yeh naya cycle hai — fresh start ──
+        if(existing.balance === 0) {
+          existing.transactions = [];  // Clean slate for new cycle
+        }
+        existing.balance += _ciNewBal;
+        existing.phone = phone||existing.phone;
+        existing.transactions = existing.transactions||[];
+        existing.transactions.push(sale.id);
+      } else if(_ciNewBal>0) {
+        udhaarData.push({id:'u_'+Date.now(),name:customer,phone,address:'',balance:_ciNewBal,transactions:[sale.id]});
+      }
+    }
+    save('udhaar', udhaarData);
+  }
+  closeModal('modal-custom-invoice');
+  renderDashboard(); renderHistory(); renderUdhaar();
+  showInvoice(sale);
+  toast('Invoice ban gayi!', 'success');
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) closeModal(m.id); });
+});
+
+// ─── TOAST ────────────────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const t=document.getElementById('toast');
+  const icon=document.getElementById('toast-icon');
+  t.className='toast show '+(type||'success');
+  document.getElementById('toast-msg').textContent=msg;
+  icon.className='fas '+(type==='error'?'fa-times-circle':type==='success'?'fa-check-circle':'fa-info-circle');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────
+function fmt(n) { return Number(n||0).toLocaleString('en-PK'); }
+function getEmoji(cat) {
+  const map={Grocery:'🛒',Cosmetics:'💄',Electronics:'📱',Clothing:'👕',Beverages:'🥤',Snacks:'🍿',Medicine:'💊',Other:'📦'};
+  return map[cat]||'📦';
+}
+function uid() { return '_'+Math.random().toString(36).slice(2,9); }
+
+// ─── DATA EXPORT / IMPORT ─────────────────────────────────────────────
+function exportData() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    user: { name: currentUser.name, business: currentUser.business, email: currentUser.email },
+    products,
+    sales,
+    udhaarData,
+    invoiceSettings: load('invoiceSettings', {})
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `stockpro-backup-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Data export ho gaya!', 'success');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.products || !data.sales) return toast('Invalid backup file','error');
+      if(!confirm(`Yeh import karega:\n• ${data.products.length} Products\n• ${data.sales.length} Sales\n• ${(data.udhaarData||[]).length} Udhaar records\n\nPurana data replace ho jayega. Confirm?`)) return;
+      products = data.products || [];
+      sales = data.sales || [];
+      udhaarData = data.udhaarData || [];
+      save('products', products);
+      save('sales', sales);
+      save('udhaar', udhaarData);
+      if(data.invoiceSettings) save('invoiceSettings', data.invoiceSettings);
+      renderDashboard(); renderProducts(); renderPOS(); renderHistory(); renderUdhaar();
+      updateNotifBadge(); updateCartBadge();
+      toast(`Import complete! ${products.length} products, ${sales.length} sales`, 'success');
+      closeModal('modal-settings');
+    } catch(err) {
+      toast('File read nahi hui. Valid JSON file chahiye.','error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────
+checkSession();
+</script>
+</body>
+</html>
